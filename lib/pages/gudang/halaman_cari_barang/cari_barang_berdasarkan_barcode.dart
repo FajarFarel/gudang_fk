@@ -11,7 +11,7 @@ class CariBarangBerdasarkanBarcode extends StatefulWidget {
 
 class _CariBarangBerdasarkanBarcodeState extends State<CariBarangBerdasarkanBarcode> {
   final TextEditingController _searchController = TextEditingController();
-  final BarangController _controller = BarangController();
+  final ControllerCariBarangBarcode _controller = ControllerCariBarangBarcode();
 
   bool hasData = false;
   Map<String, dynamic>? barangData;
@@ -121,6 +121,15 @@ class _CariBarangBerdasarkanBarcodeState extends State<CariBarangBerdasarkanBarc
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                barangData!["foto_barang"] != null &&
+                        barangData!["foto_barang"].toString().isNotEmpty
+                    ? Image.network(
+                        barangData!["foto_barang"],
+                        height: 150,
+                        fit: BoxFit.cover,
+                      )
+                    : const Text("-", style: TextStyle(color: Colors.white)),
+                const SizedBox(height: 20),
                 Text(
                   barangData!["nama_barang"] ?? "-",
                   style: const TextStyle(
@@ -143,15 +152,6 @@ class _CariBarangBerdasarkanBarcodeState extends State<CariBarangBerdasarkanBarc
                   "Kondisi: B:${barangData!["B"] ?? 0}, RR:${barangData!["RR"] ?? 0}, RB:${barangData!["RB"] ?? 0}",
                   style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
-                const SizedBox(height: 20),
-                barangData!["foto_barang"] != null &&
-                        barangData!["foto_barang"].toString().isNotEmpty
-                    ? Image.network(
-                        barangData!["foto_barang"],
-                        height: 150,
-                        fit: BoxFit.cover,
-                      )
-                    : const Text("-", style: TextStyle(color: Colors.white)),
               ],
             ),
           ),

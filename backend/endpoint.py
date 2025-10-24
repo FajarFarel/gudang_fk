@@ -184,7 +184,7 @@ def get_barang_by_lantai(lantai):
         cursor.close()
         conn.close()
 
-@api_bp.route('/api/cari/barcode', methods=['GET'])
+@api_bp.route('/cari/barcode', methods=['GET'])
 def cari_barang_berdasarkan_barcode():
     barcode = request.args.get('barcode')
 
@@ -194,12 +194,13 @@ def cari_barang_berdasarkan_barcode():
     conn = get_db_connection()
     if conn is None:
         return jsonify({"error": "Database connection failed"}), 500
-    cursor = conn.cursor(dictionary=True)
+
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
 
     query = """
         SELECT id, no_bmn, nama_barang, tanggal_barang_datang, lantai, jumlah_satuan,
                B, RR, RB, foto_barang, no_barcode
-        FROM barang
+        FROM barang_masuk
         WHERE no_barcode = %s
     """
     cursor.execute(query, (barcode,))
@@ -209,6 +210,74 @@ def cari_barang_berdasarkan_barcode():
     conn.close()
 
     if result:
+        if result.get("foto_barang"):
+            result["foto_barang"] = f"{Base_URL}/uploads/barang/{result['foto_barang']}"
+        return jsonify({"status": "success", "data": result}), 200
+    else:
+        return jsonify({"status": "not_found", "message": "Barang tidak ditemukan"}), 404
+
+
+@api_bp.route('/cari/nobmn', methods=['GET'])
+def cari_barang_berdasarkan_nobmn():
+    nobmn = request.args.get('nobmn')
+
+    if not nobmn:
+        return jsonify({"error": "No BMN tidak boleh kosong"}), 400
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+    query = """
+        SELECT id, no_bmn, nama_barang, tanggal_barang_datang, lantai, jumlah_satuan,
+               B, RR, RB, foto_barang, no_barcode
+        FROM barang_masuk
+        WHERE no_bmn = %s
+    """
+    cursor.execute(query, (nobmn,))
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if result:
+        if result.get("foto_barang"):
+            result["foto_barang"] = f"{Base_URL}/uploads/barang/{result['foto_barang']}"
+        return jsonify({"status": "success", "data": result}), 200
+    else:
+        return jsonify({"status": "not_found", "message": "Barang tidak ditemukan"}), 404
+
+
+@api_bp.route('/cari/lantai', methods=['GET'])
+def cari_barang_berdasarkan_lantai():
+    lantai = request.args.get('lantai')
+
+    if not lantai:
+        return jsonify({"error": "Lantai tidak boleh kosong"}), 400
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+    query = """
+        SELECT id, no_bmn, nama_barang, tanggal_barang_datang, lan~tai, jumlah_satuan,
+               B, RR, RB, foto_barang, no_barcode
+        FROM barang_masuk
+        WHERE lantai = %s
+    """
+    cursor.execute(query, (lantai,))
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if result:
+        if result.get("foto_barang"):
+            result["foto_barang"] = f"{Base_URL}/uploads/barang/{result['foto_barang']}"
         return jsonify({"status": "success", "data": result}), 200
     else:
         return jsonify({"status": "not_found", "message": "Barang tidak ditemukan"}), 404

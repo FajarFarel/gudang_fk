@@ -2,11 +2,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api/config.dart';
 
-class ServiceCariBarangBarcode {
+class ServiceCariBarangLantai {
 
   // Fungsi pencarian barang berdasarkan barcode
-  static Future<Map<String, dynamic>?> cariBarangByBarcode(String barcode) async {
-    final url = Uri.parse("${Config.baseUrl}/api/cari/barcode?barcode=$barcode");
+  static Future<Map<String, dynamic>?> cariBarangByLantai(String lantai) async {
+    final url = Uri.parse("${Config.baseUrl}/api/cari/lantai?lantai=$lantai");
 
     try {
       final response = await http.get(url);
@@ -18,7 +18,7 @@ class ServiceCariBarangBarcode {
         return null;
       }
     } catch (e) {
-      print("❌ Error cariBarangByBarcode: $e");
+      print("❌ Error cariBarangByLantai: $e");
       return null;
     }
   }

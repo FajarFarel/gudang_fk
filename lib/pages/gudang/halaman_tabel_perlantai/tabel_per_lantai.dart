@@ -1,12 +1,10 @@
 // lib/view/tabel_stock_barang.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:gudang_fk/utility/colors.dart';
 import 'package:gudang_fk/controller/isi_tabel_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import '../../../api/config.dart';
 
 class TabelStockBarang extends StatefulWidget {
   final int lantai;
@@ -53,7 +51,7 @@ class _TabelStockBarangState extends State<TabelStockBarang> {
       if (parsedDate == null) return tgl;
 
       // Ubah ke format Indonesia
-      return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(parsedDate!);
+      return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(parsedDate);
     } catch (_) {
       return tgl;
     }
