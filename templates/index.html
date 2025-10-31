@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Hosting App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Flask App Hosting</h1>
+            <p class="subtitle">Aplikasi Flask Anda berjalan dengan sukses!</p>
+        </header>
+        
+        <main>
+            <div class="card">
+                <h2>Selamat!</h2>
+                <p>Aplikasi Flask Anda sudah berhasil di-hosting di Replit.</p>
+                <p>Anda dapat mengganti file ini (<code>templates/index.html</code>) dengan konten aplikasi Anda sendiri.</p>
+            </div>
+
+            <div class="card">
+                <h3>API Endpoints</h3>
+                <ul class="endpoint-list">
+                    <li>
+                        <strong>GET /api/health</strong> - Health check endpoint
+                    </li>
+                    <li>
+                        <strong>GET /api/info</strong> - Informasi aplikasi
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Langkah Selanjutnya</h3>
+                <ol>
+                    <li>Tambahkan route dan logika aplikasi Anda di <code>main.py</code></li>
+                    <li>Tambahkan template HTML di folder <code>templates/</code></li>
+                    <li>Tambahkan file CSS/JS di folder <code>static/</code></li>
+                    <li>Update <code>requirements.txt</code> jika menambah dependencies</li>
+                    <li>Klik tombol "Publish" untuk deploy ke production</li>
+                </ol>
+            </div>
+        </main>
+
+        <footer>
+            <p>Dibuat dengan Flask di Replit</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
