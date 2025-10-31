@@ -417,7 +417,7 @@ packages:
     source: hosted
     version: "2.3.0"
   pdf:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: pdf
       sha256: "28eacad99bffcce2e05bba24e50153890ad0255294f4dd78a17075a2ba5c8416"
@@ -513,7 +513,7 @@ packages:
     source: hosted
     version: "6.0.3"
   printing:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: printing
       sha256: "482cd5a5196008f984bb43ed0e47cbfdca7373490b62f3b27b3299275bf22a93"

@@ -81,7 +81,7 @@ class _CariBarangBerdasarkanNoBmnState extends State<CariBarangBerdasarkanNoBmn>
                       child: child,
                     ),
                     child: hasData
-                        ? _buildResultCard()
+                        ? SingleChildScrollView(child: _buildResultCard())
                         : const Text(
                             "",
                             key: ValueKey("idle"),

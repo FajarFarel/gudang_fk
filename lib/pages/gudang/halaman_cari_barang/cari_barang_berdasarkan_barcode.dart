@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
 import 'package:gudang_fk/controller/controller_cari_barang_barcode.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'dart:typed_data';
+import 'package:pdf/pdf.dart';
 
 class CariBarangBerdasarkanBarcode extends StatefulWidget {
   const CariBarangBerdasarkanBarcode({super.key});
 
   @override
-  State<CariBarangBerdasarkanBarcode> createState() => _CariBarangBerdasarkanBarcodeState();
+  State<CariBarangBerdasarkanBarcode> createState() =>
+      _CariBarangBerdasarkanBarcodeState();
 }
 
-class _CariBarangBerdasarkanBarcodeState extends State<CariBarangBerdasarkanBarcode> {
+class _CariBarangBerdasarkanBarcodeState
+    extends State<CariBarangBerdasarkanBarcode> {
   final TextEditingController _searchController = TextEditingController();
   final ControllerCariBarangBarcode _controller = ControllerCariBarangBarcode();
 
@@ -26,6 +32,66 @@ class _CariBarangBerdasarkanBarcodeState extends State<CariBarangBerdasarkanBarc
       hasData = true;
       barangData = result;
     });
+  }
+
+  Future<void> _exportToPDF() async {
+    if (barangData == null) return;
+
+    final pdf = pw.Document();
+
+    final imageProvider = barangData!["foto_barang"] != null
+        ? await networkImage(barangData!["foto_barang"])
+        : null;
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Container(
+            padding: const pw.EdgeInsets.all(24),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              children: [
+                pw.Text(
+                  'Data Barang',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 20),
+                if (imageProvider != null)
+                  pw.Image(imageProvider, height: 150, fit: pw.BoxFit.cover),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  barangData!["nama_barang"] ?? "-",
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text("No BMN: ${barangData!["no_bmn"] ?? '-'}"),
+                pw.Text("Lantai: ${barangData!["lantai"] ?? '-'}"),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  "Kondisi: B: ${barangData!["B"] ?? 0}, RR: ${barangData!["RR"] ?? 0}, RB: ${barangData!["RB"] ?? 0}",
+                ),
+                pw.SizedBox(height: 20),
+                pw.Divider(),
+                pw.Text(
+                  "Dicetak pada ${DateTime.now()}",
+                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
   @override
@@ -76,16 +142,11 @@ class _CariBarangBerdasarkanBarcodeState extends State<CariBarangBerdasarkanBarc
                 child: Center(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 400),
-                    transitionBuilder: (child, anim) => FadeTransition(
-                      opacity: anim,
-                      child: child,
-                    ),
+                    transitionBuilder: (child, anim) =>
+                        FadeTransition(opacity: anim, child: child),
                     child: hasData
-                        ? _buildResultCard()
-                        : const Text(
-                            "",
-                            key: ValueKey("idle"),
-                          ),
+                        ? SingleChildScrollView(child: _buildResultCard())
+                        : const Text("", key: ValueKey("idle")),
                   ),
                 ),
               ),
@@ -133,9 +194,10 @@ class _CariBarangBerdasarkanBarcodeState extends State<CariBarangBerdasarkanBarc
                 Text(
                   barangData!["nama_barang"] ?? "-",
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold),
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 10),
@@ -153,6 +215,20 @@ class _CariBarangBerdasarkanBarcodeState extends State<CariBarangBerdasarkanBarc
                   style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton.icon(
+          onPressed: _exportToPDF,
+          icon: const Icon(Icons.picture_as_pdf),
+          label: const Text("Print / Ekspor ke PDF"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.buttonColor,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
         ),

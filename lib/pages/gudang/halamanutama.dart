@@ -101,7 +101,7 @@ class MenuGudangScreen extends StatelessWidget {
                 _buildMenuButton("Pemesanan", () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const Pemesanan()),
+                    MaterialPageRoute(builder: (context) => const PemesananPage()),
                   );
                   // Navigasi ke halaman pemesanan
                 }),

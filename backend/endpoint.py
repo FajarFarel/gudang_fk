@@ -1,3 +1,4 @@
+from fileinput import filename
 from flask import Blueprint, jsonify, request, current_app
 import pymysql
 from werkzeug.utils import secure_filename
@@ -58,7 +59,7 @@ def login():
 
 # Input barang
 @api_bp.route('/input', methods=['POST'])
-def tambah_barang():
+def tambah_barang_masuk():
     try:
         data = request.form
         file = request.files.get("foto_barang")
@@ -264,7 +265,7 @@ def cari_barang_berdasarkan_lantai():
     cursor = conn.cursor(pymysql.cursors.DictCursor)
 
     query = """
-        SELECT id, no_bmn, nama_barang, tanggal_barang_datang, lan~tai, jumlah_satuan,
+        SELECT id, no_bmn, nama_barang, tanggal_barang_datang, lantai, jumlah_satuan,
                B, RR, RB, foto_barang, no_barcode
         FROM barang_masuk
         WHERE lantai = %s
@@ -281,3 +282,111 @@ def cari_barang_berdasarkan_lantai():
         return jsonify({"status": "success", "data": result}), 200
     else:
         return jsonify({"status": "not_found", "message": "Barang tidak ditemukan"}), 404
+    
+@api_bp.route('/pemesanan', methods=['POST'])
+def tambah_pemesanan():
+    try:
+        data = request.form
+        file = request.files.get("foto")
+
+        print("📦 Data form:", dict(data))
+        print("📷 File:", file)
+        print("📷 Filename:", file.filename if file else None)
+
+        # Semua field wajib sesuai tabel
+        required_fields = ["nama_pemesan", "nama_barang", "jumlah", "nama_ruangan", "harga", "link_pembelian"]
+        if not all(data.get(f) for f in required_fields) or not file or file.filename == '':
+            return jsonify({"error": "Semua field harus diisi dan foto barang harus diupload!"}), 400
+
+        # Validasi file
+        def allowed_file(filename):
+            return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
+        if not allowed_file(file.filename):
+            return jsonify({"error": "Format file tidak didukung! (Gunakan .jpg, .jpeg, .png)"}), 400
+
+        # Simpan foto
+        upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'pemesanan')
+        os.makedirs(upload_folder, exist_ok=True)
+        filename = secure_filename(file.filename)
+        unique_filename = f"{int(time.time())}_{filename}"
+        save_path = os.path.join(upload_folder, unique_filename)
+        file.save(save_path)
+
+        tanggal_pemesanan = datetime.now()
+
+        # Simpan data ke database
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO pemesanan (
+                        nama_pemesan, jumlah, foto, tanggal_pemesanan,
+                        nama_barang, nama_ruangan, harga, link_pembelian
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    data["nama_pemesan"], data["jumlah"], unique_filename, tanggal_pemesanan,
+                    data["nama_barang"], data["nama_ruangan"],
+                    data["harga"], data["link_pembelian"]
+                ))
+                conn.commit()
+                new_id = cursor.lastrowid
+
+        return jsonify({
+            "message": "Data pemesanan berhasil ditambahkan!",
+            "id": new_id
+        }), 201
+
+    except Exception as e:
+        print("❌ ERROR:", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route('/pemesanan/<int:id>', methods=['GET'])
+def get_pemesanan_by_id(id):
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        # Format tanggal pakai locale Indonesia
+        try:
+            locale.setlocale(locale.LC_TIME, 'id_ID.UTF-8')
+        except:
+            locale.setlocale(locale.LC_TIME, 'id_ID')  # fallback
+
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+        cursor.execute("""
+            SELECT 
+                id, nama_pemesan, nama_barang, jumlah, nama_ruangan, harga,
+                link_pembelian, tanggal_pemesanan, foto
+            FROM pemesanan
+            WHERE id = %s
+        """, (id,))
+        row = cursor.fetchone()
+
+        if not row:
+            return jsonify({"message": f"Data pemesanan dengan ID {id} tidak ditemukan"}), 404
+
+        # Format tanggal ke Bahasa Indonesia
+        tgl = row.get("tanggal_pemesanan")
+        if isinstance(tgl, (datetime, str)):
+            if isinstance(tgl, str):
+                try:
+                    tgl = datetime.fromisoformat(tgl)
+                except:
+                    pass
+            row["tanggal_pemesanan"] = tgl.strftime("%A, %d %B %Y")  # Kamis, 23 Oktober 2025
+
+        # Ganti nama kolom foto menjadi URL lengkap
+        foto_filename = row.get("foto")
+        if foto_filename:
+            row["foto_url"] = f"{Base_URL}/uploads/pemesanan/{foto_filename}"
+
+        return jsonify(row), 200
+
+    except Exception as e:
+        print("❌ ERROR (GET /pemesanan/<id>):", e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        cursor.close()
+        conn.close()

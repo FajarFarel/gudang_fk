@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/pages/homescreen.dart';
 import '../service/auth_service.dart';
+import 'package:gudang_fk/utility/colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obsecurePassword = true;
   bool _isLoading = false;
-  
+
   Future<void> _handleLogin() async {
     String username = _usernameController.text.trim();
     String password = _passwordController.text.trim();
@@ -37,40 +38,40 @@ class _LoginScreenState extends State<LoginScreen> {
 
     String? result = await _authService.login(username, password);
 
-setState(() {
-  _isLoading = false;
-});
-
-if (result == null) {
-  // sukses login
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text("Login Berhasil 🎉"),
-      backgroundColor: Colors.green,
-      duration: Duration(seconds: 1),
-    ),
-  )..closed.then((_) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => Homescreen()),
-      );
+    setState(() {
+      _isLoading = false;
     });
-} else {
-  // gagal login, tampilkan error spesifik dari backend
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(result), // bisa "Username salah" atau "Password salah"
-      backgroundColor: Colors.redAccent,
-    ),
-  );
-}
 
+    if (result == null) {
+      // sukses login
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Login Berhasil 🎉"),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
+          ),
+        )
+        ..closed.then((_) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Homescreen()),
+          );
+        });
+    } else {
+      // gagal login, tampilkan error spesifik dari backend
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result), // bisa "Username salah" atau "Password salah"
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
   } // <-- Add this closing brace for _handleLogin
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2A2930),
+      backgroundColor: AppColors.backgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
@@ -89,6 +90,7 @@ if (result == null) {
             // Username
             TextField(
               controller: _usernameController,
+              cursorColor: AppColors.textColor,
               decoration: InputDecoration(
                 hintText: "Username",
                 filled: true,
@@ -107,6 +109,7 @@ if (result == null) {
             TextField(
               controller: _passwordController,
               obscureText: _obsecurePassword,
+              cursorColor: AppColors.textColor,
               decoration: InputDecoration(
                 hintText: "Password",
                 filled: true,

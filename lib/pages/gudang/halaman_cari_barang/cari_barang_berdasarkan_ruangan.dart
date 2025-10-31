@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
 import 'package:gudang_fk/controller/controller_cari_barang_lantai.dart';
@@ -81,7 +82,7 @@ class _CariBarangBerdasarkanRuanganState
                     transitionBuilder: (child, anim) =>
                         FadeTransition(opacity: anim, child: child),
                     child: hasData
-                        ? _buildResultCard()
+                        ? SingleChildScrollView(child: _buildResultCard())
                         : const Text("", key: ValueKey("idle")),
                   ),
                 ),
