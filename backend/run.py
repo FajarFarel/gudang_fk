@@ -18,6 +18,10 @@ app.register_blueprint(api_bp, url_prefix="/api")
 def get_barang_file(filename):
     return send_from_directory(os.path.join(app.config['UPLOAD_FOLDER'], 'barang'), filename)
 
+@app.route('/uploads/pemesanan/<path:filename>')
+def serve_pemesanan_file(filename):
+    return send_from_directory('uploads/pemesanan', filename)
+
 @app.route('/')
 def home():
     return {"message": "Server running with DB connection!"}

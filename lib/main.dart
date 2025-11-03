@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/pages/splashscreen.dart';
-import 'package:gudang_fk/pages/homescreen.dart';
 
 void main() {
   runApp(const MyApp());

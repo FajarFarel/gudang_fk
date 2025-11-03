@@ -3,7 +3,6 @@ import 'package:gudang_fk/utility/colors.dart';
 import 'package:gudang_fk/controller/controller_cari_barang_barcode.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'dart:typed_data';
 import 'package:pdf/pdf.dart';
 
 class CariBarangBerdasarkanBarcode extends StatefulWidget {

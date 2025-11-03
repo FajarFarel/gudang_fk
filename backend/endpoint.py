@@ -294,7 +294,7 @@ def tambah_pemesanan():
         print("📷 Filename:", file.filename if file else None)
 
         # Semua field wajib sesuai tabel
-        required_fields = ["nama_pemesan", "nama_barang", "jumlah", "nama_ruangan", "harga", "link_pembelian"]
+        required_fields = ["nama_pemesan", "nama_barang", "jumlah", "nama_ruangan", "harga", "link_pembelian", "satuan", "spesifikasi"]
         if not all(data.get(f) for f in required_fields) or not file or file.filename == '':
             return jsonify({"error": "Semua field harus diisi dan foto barang harus diupload!"}), 400
 
@@ -320,12 +320,12 @@ def tambah_pemesanan():
                 cursor.execute("""
                     INSERT INTO pemesanan (
                         nama_pemesan, jumlah, foto, tanggal_pemesanan,
-                        nama_barang, nama_ruangan, harga, link_pembelian
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        nama_barang, nama_ruangan, harga, link_pembelian, satuan, spesifikasi
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     data["nama_pemesan"], data["jumlah"], unique_filename, tanggal_pemesanan,
                     data["nama_barang"], data["nama_ruangan"],
-                    data["harga"], data["link_pembelian"]
+                    data["harga"], data["link_pembelian"], data["satuan"], data["spesifikasi"]
                 ))
                 conn.commit()
                 new_id = cursor.lastrowid
@@ -340,53 +340,92 @@ def tambah_pemesanan():
         return jsonify({"error": str(e)}), 500
 
 
+@api_bp.route('/pemesanan', defaults={'id': None}, methods=['GET'])
 @api_bp.route('/pemesanan/<int:id>', methods=['GET'])
-def get_pemesanan_by_id(id):
+def get_pemesanan(id):
     conn = get_db_connection()
     if conn is None:
         return jsonify({"error": "Database connection failed"}), 500
 
     try:
-        # Format tanggal pakai locale Indonesia
+        # Locale Indonesia
         try:
             locale.setlocale(locale.LC_TIME, 'id_ID.UTF-8')
         except:
-            locale.setlocale(locale.LC_TIME, 'id_ID')  # fallback
+            locale.setlocale(locale.LC_TIME, 'id_ID')
 
         cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute("""
-            SELECT 
-                id, nama_pemesan, nama_barang, jumlah, nama_ruangan, harga,
-                link_pembelian, tanggal_pemesanan, foto
-            FROM pemesanan
-            WHERE id = %s
-        """, (id,))
-        row = cursor.fetchone()
 
-        if not row:
-            return jsonify({"message": f"Data pemesanan dengan ID {id} tidak ditemukan"}), 404
+        if id is not None:
+            # ✅ Kalau ada ID → ambil 1 data
+            cursor.execute("""
+                SELECT 
+                    id, nama_pemesan, nama_barang, jumlah, nama_ruangan, harga,
+                    link_pembelian, tanggal_pemesanan, foto, satuan, spesifikasi
+                FROM pemesanan
+                WHERE id = %s
+            """, (id,))
+            rows = cursor.fetchall()
+        else:
+            # ✅ Kalau nggak ada ID → ambil semua
+            cursor.execute("""
+                SELECT 
+                    id, nama_pemesan, nama_barang, jumlah, nama_ruangan, harga,
+                    link_pembelian, tanggal_pemesanan, foto, satuan, spesifikasi
+                FROM pemesanan
+                ORDER BY tanggal_pemesanan DESC
+            """)
+            rows = cursor.fetchall()
 
-        # Format tanggal ke Bahasa Indonesia
-        tgl = row.get("tanggal_pemesanan")
-        if isinstance(tgl, (datetime, str)):
-            if isinstance(tgl, str):
+        if not rows:
+            if id is not None:
+                return jsonify({"message": f"Data pemesanan dengan ID {id} tidak ditemukan"}), 404
+            else:
+                return jsonify([]), 200
+
+        # Format tanggal & URL foto
+        for row in rows:
+            tgl = row.get("tanggal_pemesanan")
+            if tgl:
+                # Konversi dari string GMT ke datetime
+                if isinstance(tgl, str):
+                    try:
+                        tgl = datetime.strptime(tgl, "%a, %d %b %Y %H:%M:%S %Z")
+                    except ValueError:
+                        # fallback kalau format beda
+                        tgl = datetime.fromisoformat(tgl.replace("Z", "+00:00"))
+
+                # Set locale ke Bahasa Indonesia (fallback biar gak error)
                 try:
-                    tgl = datetime.fromisoformat(tgl)
+                    locale.setlocale(locale.LC_TIME, 'id_ID.UTF-8')
                 except:
-                    pass
-            row["tanggal_pemesanan"] = tgl.strftime("%A, %d %B %Y")  # Kamis, 23 Oktober 2025
+                    try:
+                        locale.setlocale(locale.LC_TIME, 'id_ID')
+                    except:
+                        try:
+                            locale.setlocale(locale.LC_TIME, 'indonesian')  # buat Windows
+                        except:
+                            locale.setlocale(locale.LC_TIME, '')
 
-        # Ganti nama kolom foto menjadi URL lengkap
-        foto_filename = row.get("foto")
-        if foto_filename:
-            row["foto_url"] = f"{Base_URL}/uploads/pemesanan/{foto_filename}"
+                # Format ke "Hari, dd Bulan yyyy"
+                row["tanggal_pemesanan"] = tgl.strftime("%A, %d %B %Y").capitalize()
 
-        return jsonify(row), 200
+            # Tambah URL foto
+            foto_filename = row.get("foto")
+            if foto_filename:
+                row["foto_url"] = f"{Base_URL}/uploads/pemesanan/{foto_filename}"
+
+        # Kalau cuma 1 data, balikin object, bukan list
+        if id is not None and len(rows) == 1:
+            return jsonify(rows[0]), 200
+        else:
+            return jsonify(rows), 200
 
     except Exception as e:
-        print("❌ ERROR (GET /pemesanan/<id>):", e)
+        print("❌ ERROR (GET /pemesanan):", e)
         return jsonify({"error": str(e)}), 500
 
     finally:
         cursor.close()
         conn.close()
+

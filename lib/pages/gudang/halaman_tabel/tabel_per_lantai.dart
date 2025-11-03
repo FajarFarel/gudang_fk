@@ -192,21 +192,41 @@ class _TabelStockBarangState extends State<TabelStockBarang> {
                             color: const Color(0xFFF8F8F8),
                             padding: const EdgeInsets.all(8),
                             alignment: Alignment.center,
-                            child:
-                                data[i]["foto_barang"] != null &&
-                                    data[i]["foto_barang"].toString().isNotEmpty
-                                ? Image.network(
-                                    data[i]["foto_barang"],
+                            child: Builder(
+                              builder: (context) {
+                                final rawUrl = data[i]["foto_barang"];
+                                if (rawUrl == null ||
+                                    rawUrl.toString().trim().isEmpty) {
+                                  return const Text("-");
+                                }
+
+                                final url = rawUrl.toString().trim();
+
+                                try {
+                                  final uri = Uri.parse(
+                                    url,
+                                  ); // pastikan format valid
+                                  return Image.network(
+                                    uri.toString(),
                                     width: 80,
                                     height: 80,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
+                                      print(
+                                        "🧨 Gagal load foto: $error, URL: '$url'",
+                                      );
                                       return const Text("Gagal muat");
                                     },
-                                  )
-                                : const Text("-"),
+                                  );
+                                } catch (e) {
+                                  print("🧨 Format URL salah: $rawUrl");
+                                  return const Text("URL salah");
+                                }
+                              },
+                            ),
                           ),
                         ),
+
                         cell(
                           "B:${data[i]["B"] ?? 0}, RR:${data[i]["RR"] ?? 0}, RB:${data[i]["RB"] ?? 0}",
                         ),

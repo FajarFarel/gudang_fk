@@ -35,7 +35,7 @@ class _HomescreenState extends State<Homescreen> {
             const SizedBox(height: 50),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.buttonColor2,
+                backgroundColor: AppColors.backgroundColor,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 80,
                   vertical: 25,
@@ -57,7 +57,7 @@ class _HomescreenState extends State<Homescreen> {
                 "Gudang FK",
                 style: TextStyle(
                   color: AppColors.buttonColor,
-                  fontSize: 24,
+                  fontSize: 27,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -65,7 +65,7 @@ class _HomescreenState extends State<Homescreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.buttonColor2,
+                backgroundColor: AppColors.backgroundColor,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 70,
                   vertical: 25,
@@ -85,7 +85,7 @@ class _HomescreenState extends State<Homescreen> {
                 "BHP dan ATK",
                 style: TextStyle(
                   color: AppColors.buttonColor,
-                  fontSize: 24,
+                  fontSize: 27,
                   fontWeight: FontWeight.bold,
                 ),
               ),

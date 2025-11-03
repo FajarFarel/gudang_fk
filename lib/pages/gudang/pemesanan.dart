@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'halaman_tabel/tabel_pemesanan.dart';
 
 class PemesananPage extends StatefulWidget {
   const PemesananPage({super.key});
@@ -21,6 +22,8 @@ class _PemesananPageState extends State<PemesananPage> {
   final _NamaPemesanController = TextEditingController();
   final _tglPemesanan = TextEditingController();
   final _JumlahController = TextEditingController();
+  final _satuanController = TextEditingController();
+  final _spesifikasiController = TextEditingController();
   final _NamaBarangController = TextEditingController();
   final _NamaRuanganController = TextEditingController();
   final _HargaController = TextEditingController();
@@ -95,6 +98,8 @@ class _PemesananPageState extends State<PemesananPage> {
     final data = {
       'nama_pemesan': _NamaPemesanController.text.trim(),
       'jumlah': _JumlahController.text.trim(),
+      'satuan': _satuanController.text.trim(),
+      'spesifikasi': _spesifikasiController.text.trim(),
       'nama_barang': _NamaBarangController.text.trim(),
       'nama_ruangan': _NamaRuanganController.text.trim(),
       'harga': _HargaController.text.trim(),
@@ -109,6 +114,8 @@ class _PemesananPageState extends State<PemesananPage> {
       );
       _NamaPemesanController.clear();
       _JumlahController.clear();
+      _satuanController.clear();
+      _spesifikasiController.clear();
       _tglPemesanan.clear();
       _NamaBarangController.clear();
       _NamaRuanganController.clear();
@@ -169,6 +176,10 @@ class _PemesananPageState extends State<PemesananPage> {
                     const SizedBox(height: 15),
                     _buildTextField("Jumlah", _JumlahController),
                     const SizedBox(height: 15),
+                    _buildTextField("Satuan", _satuanController),
+                    const SizedBox(height: 15),
+                    _buildTextField("Spesifikasi", _spesifikasiController),
+                    const SizedBox(height: 15),
                     _buildTextField("Nama Barang", _NamaBarangController),
                     const SizedBox(height: 15),
                     _buildTextField("Nama Ruangan", _NamaRuanganController),
@@ -223,9 +234,34 @@ class _PemesananPageState extends State<PemesananPage> {
                   child: const Text(
                     "Kirim Pemesanan",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                )
+                  ),
                 ),
-              )
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.buttonColor2,
+                    foregroundColor: AppColors.buttonColor,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => TabelPemesanan(),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "Tabel Pemesanan",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

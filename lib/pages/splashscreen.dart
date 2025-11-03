@@ -111,10 +111,10 @@ class _SplashscreenState extends State<Splashscreen> {
           children: [
             const Spacer(),
             Center(
-              child: SvgPicture.asset(
-                "assets/rumah.svg",
-                width: 200,
-                height: 250,
+              child: Image.asset(
+                "assets/logofk.png",
+                width: 300,
+                height: 300,
               ),
             ),
             const SizedBox(height: 10),
