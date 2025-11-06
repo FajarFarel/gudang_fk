@@ -1,4 +1,4 @@
-import 'package:gudang_fk/service/service_cari_barang_lantai.dart';
+import 'package:gudang_fk/service/gudang/service_cari_barang_lantai.dart';
 
 class ControllerCariBarangLantai {
   // Fungsi ini akan dipanggil dari UI

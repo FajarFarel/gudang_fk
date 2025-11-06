@@ -1,13 +1,16 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
+import '../../api/config.dart';
+import 'dart:io';
 import 'package:http_parser/http_parser.dart';
-import '../api/config.dart';
 
-class BarangService {
-  Future<bool> tambahBarang(Map<String, dynamic> data, File? pickedImage) async {
-    final url = Uri.parse('${Config.baseUrl}/api/input');
-    print("➡️ POST (multipart): $url");
+class ServicePemesanan {
+  Future<bool> buatPemesanan(
+    Map<String, dynamic> data,
+    File? pickedImage,
+  ) async {
+    final url = Uri.parse('${Config.baseUrl}/api/pemesanan');
+    print("➡️ POST: $url");
 
     try {
       var request = http.MultipartRequest('POST', url);
@@ -17,13 +20,15 @@ class BarangService {
         request.fields[key] = value.toString();
       });
 
-      // Tambah file gambar
+      // Tambah file foto kalau ada
       if (pickedImage != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'foto_barang',
-          pickedImage.path,
-          contentType: MediaType('image', 'jpeg'), // sesuaikan format
-        ));
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'foto',
+            pickedImage.path,
+            contentType: MediaType('image', pickedImage.path.split('.').last),
+          ),
+        );
       }
 
       var response = await request.send();
@@ -38,14 +43,14 @@ class BarangService {
     }
   }
 
-  Future<List<dynamic>> getBarang() async {
-    final url = Uri.parse('${Config.baseUrl}/api/barang');
+  Future<List<dynamic>> getPemesanan() async {
+    final url = Uri.parse('${Config.baseUrl}/api/pemesanan');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception("Gagal ambil data barang");
+        throw Exception("Gagal ambil data pemesanan");
       }
     } catch (e) {
       print("❌ Error: $e");

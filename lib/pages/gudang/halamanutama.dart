@@ -105,6 +105,7 @@ class MenuGudangScreen extends StatelessWidget {
                   );
                   // Navigasi ke halaman pemesanan
                 }),
+                const SizedBox(height: 40),
               ],
             ),
           ),

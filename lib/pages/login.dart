@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/pages/homescreen.dart';
-import '../service/auth_service.dart';
+import '../service/gudang/auth_service.dart';
 import 'package:gudang_fk/utility/colors.dart';
 
 class LoginScreen extends StatefulWidget {

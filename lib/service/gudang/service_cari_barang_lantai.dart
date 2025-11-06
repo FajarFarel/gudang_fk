@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../api/config.dart';
+import '../../api/config.dart';
 
 class ServiceCariBarangLantai {
 

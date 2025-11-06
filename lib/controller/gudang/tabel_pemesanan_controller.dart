@@ -1,4 +1,4 @@
-import '../service/tabel_pemesanan_service.dart';
+import '../../service/gudang/tabel_pemesanan_service.dart';
 
 class TabelPemesananController {
   final _service = TabelPemesananService();

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:gudang_fk/utility/colors.dart';
-import 'package:gudang_fk/controller/isi_tabel_controller.dart';
+import 'package:gudang_fk/controller/gudang/isi_tabel_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 

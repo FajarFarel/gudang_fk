@@ -1,7 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
-import 'package:gudang_fk/controller/controller_cari_barang_lantai.dart';
+import 'package:gudang_fk/controller/gudang/controller_cari_barang_lantai.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+import 'package:pdf/pdf.dart';
 
 class CariBarangBerdasarkanRuangan extends StatefulWidget {
   const CariBarangBerdasarkanRuangan({super.key});
@@ -31,6 +33,64 @@ class _CariBarangBerdasarkanRuanganState
     });
   }
 
+  Future<void> _exportToPDF() async {
+    if (barangData == null) return;
+
+    final pdf = pw.Document();
+
+    final imageProvider = barangData!["foto_barang"] != null
+        ? await networkImage(barangData!["foto_barang"])
+        : null;
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Container(
+            padding: const pw.EdgeInsets.all(24),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              children: [
+                pw.Text(
+                  'Data Barang Berdasarkan Ruangan',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 20),
+                if (imageProvider != null)
+                  pw.Image(imageProvider, height: 150, fit: pw.BoxFit.cover),
+                pw.SizedBox(height: 20),
+                pw.Text(
+                  barangData!["nama_barang"] ?? "-",
+                  style: pw.TextStyle(
+                    fontSize: 20,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 10),
+                pw.Text("No BMN: ${barangData!["no_bmn"] ?? '-'}"),
+                pw.Text("Lantai: ${barangData!["lantai"] ?? '-'}"),
+                pw.SizedBox(height: 10),
+                pw.Text(
+                  "Kondisi: B:${barangData!["B"] ?? 0}, RR:${barangData!["RR"] ?? 0}, RB:${barangData!["RB"] ?? 0}",
+                ),
+                pw.SizedBox(height: 20),
+                pw.Divider(),
+                pw.Text(
+                  "Dicetak pada ${DateTime.now()}",
+                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,7 +115,6 @@ class _CariBarangBerdasarkanRuanganState
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // 🔍 Search Bar
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -63,18 +122,16 @@ class _CariBarangBerdasarkanRuanganState
                 ),
                 child: TextField(
                   controller: _searchController,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search, color: Colors.black),
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search, color: Colors.black),
                     hintText: "Telusuri No Ruangan",
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    contentPadding: EdgeInsets.symmetric(vertical: 14),
                   ),
                   onSubmitted: (_) => _search(),
                 ),
               ),
               const SizedBox(height: 24),
-
-              // ⚙️ Conditional UI
               Expanded(
                 child: Center(
                   child: AnimatedSwitcher(
@@ -120,13 +177,14 @@ class _CariBarangBerdasarkanRuanganState
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 barangData!["foto_barang"] != null &&
-                        barangData!["foto_barang"].toString().isNotEmpty
+                        barangData!["foto_barang"].toString().trim().isNotEmpty
                     ? Image.network(
-                        barangData!["foto_barang"],
+                        barangData!["foto_barang"].toString().trim(),
                         height: 150,
                         fit: BoxFit.cover,
                       )
                     : const Text("-", style: TextStyle(color: Colors.white)),
+
                 const SizedBox(height: 20),
                 Text(
                   barangData!["nama_barang"] ?? "-",
@@ -152,6 +210,20 @@ class _CariBarangBerdasarkanRuanganState
                   style: const TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton.icon(
+          onPressed: _exportToPDF,
+          icon: const Icon(Icons.picture_as_pdf),
+          label: const Text("Print / Ekspor ke PDF"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.buttonColor,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
           ),
         ),

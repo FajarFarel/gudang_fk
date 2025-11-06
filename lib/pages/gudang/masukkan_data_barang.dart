@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:gudang_fk/utility/colors.dart';
-import '../../controller/barang_controller.dart';
+import '../../controller/gudang/barang_controller.dart';
 import 'package:intl/intl.dart';
 
 class InputBarangScreen extends StatefulWidget {
@@ -16,6 +16,8 @@ class InputBarangScreen extends StatefulWidget {
 class _InputBarangScreenState extends State<InputBarangScreen> {
   final ImagePicker _picker = ImagePicker();
   final _controller = BarangController();
+  int? _selectedPemesananId;
+  List<Map<String, dynamic>> _pemesananPending = [];
 
   File? _pickedImage;
 
@@ -29,6 +31,7 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
   final _lantai = TextEditingController();
   final _keadaanGabung = TextEditingController();
   final _barcode = TextEditingController();
+  final _kategori = TextEditingController(text: "gudang");
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -47,6 +50,21 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
         context,
       ).showSnackBar(SnackBar(content: Text('Gagal ambil gambar: $e')));
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPemesananPending();
+  }
+
+  void _fetchPemesananPending() async {
+    final response = await _controller.ambilPemesananPending(
+      kategori: _kategori.text,
+    );
+    setState(() {
+      _pemesananPending = response;
+    });
   }
 
   void _showImageOptions() {
@@ -85,68 +103,79 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
     );
   }
 
- void _kirimData() async {
-  if (_pickedImage == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('❌ Harap pilih gambar dulu!')),
+  void _kirimData() async {
+    if (_pickedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('❌ Harap pilih gambar dulu!')),
+      );
+      return;
+    }
+
+    final DateTime pickedDate = DateTime.parse(_tglDatang.text);
+    final String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+
+    // Ambil input seperti: "B:5 RR:0 RB:0"
+    final kondisiText = _keadaanGabung.text.trim();
+
+    // Parsing otomatis ke angka
+    int b = 0, rr = 0, rb = 0;
+    final RegExp pattern = RegExp(
+      r'B:(\d+)|RR:(\d+)|RB:(\d+)',
+      caseSensitive: false,
     );
-    return;
+    for (final match in pattern.allMatches(kondisiText)) {
+      if (match.group(1) != null) b = int.parse(match.group(1)!);
+      if (match.group(2) != null) rr = int.parse(match.group(2)!);
+      if (match.group(3) != null) rb = int.parse(match.group(3)!);
+    }
+
+    final data = {
+      'id_pemesanan': _selectedPemesananId,
+      'no_bmn': _noBmn.text,
+      'tanggal_barang_datang': formattedDate,
+      'spesifikasi': _spesifikasi.text,
+      'nama_barang': _namaBarang.text,
+      'jumlah_satuan': _jumlah.text,
+      'nama_ruangan': _namaRuangan.text,
+      'lantai': _lantai.text,
+      'B': b.toString(),
+      'RR': rr.toString(),
+      'RB': rb.toString(),
+      'no_barcode': _barcode.text,
+      'kategori': _kategori.text,
+    };
+
+    final success = await _controller.tambahBarang(data, _pickedImage);
+    final updatedList = await _controller.ambilPemesananPending(kategori: _kategori.text);
+
+    if (success) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('✅ Data berhasil dikirim!')));
+
+      setState(() {
+        _pickedImage = null;
+        _noBmn.clear();
+        _tglDatang.clear();
+        _spesifikasi.clear();
+        _namaBarang.clear();
+        _jumlah.clear();
+        _namaRuangan.clear();
+        _lantai.clear();
+        _keadaanGabung.clear();
+        _selectedPemesananId = null;
+        _barcode.clear();
+        _pemesananPending = updatedList;
+      });
+
+      // Refresh daftar pemesanan pending
+      _fetchPemesananPending();
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('❌ Gagal kirim data')));
+    }
   }
-
-  final DateTime pickedDate = DateTime.parse(_tglDatang.text);
-  final String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
-
-  // Ambil input seperti: "B:5 RR:0 RB:0"
-  final kondisiText = _keadaanGabung.text.trim();
-
-  // Parsing otomatis ke angka
-  int b = 0, rr = 0, rb = 0;
-  final RegExp pattern = RegExp(r'B:(\d+)|RR:(\d+)|RB:(\d+)', caseSensitive: false);
-  for (final match in pattern.allMatches(kondisiText)) {
-    if (match.group(1) != null) b = int.parse(match.group(1)!);
-    if (match.group(2) != null) rr = int.parse(match.group(2)!);
-    if (match.group(3) != null) rb = int.parse(match.group(3)!);
-  }
-
-  final data = {
-    'no_bmn': _noBmn.text,
-    'tanggal_barang_datang': formattedDate,
-    'spesifikasi': _spesifikasi.text,
-    'nama_barang': _namaBarang.text,
-    'jumlah_satuan': _jumlah.text,
-    'nama_ruangan': _namaRuangan.text,
-    'lantai': _lantai.text,
-    'B': b.toString(),
-    'RR': rr.toString(),
-    'RB': rb.toString(),
-    'no_barcode': _barcode.text,
-  };
-
-  final success = await _controller.tambahBarang(data, _pickedImage);
-
-  if (success) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('✅ Data berhasil dikirim!')),
-    );
-
-    setState(() {
-      _pickedImage = null;
-      _noBmn.clear();
-      _tglDatang.clear();
-      _spesifikasi.clear();
-      _namaBarang.clear();
-      _jumlah.clear();
-      _namaRuangan.clear();
-      _lantai.clear();
-      _keadaanGabung.clear();
-      _barcode.clear();
-    });
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('❌ Gagal kirim data')),
-    );
-  }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -201,10 +230,39 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
                     const SizedBox(height: 15),
                     _buildTextField("Lantai:", _lantai),
                     const SizedBox(height: 15),
-                    _buildTextField("Keadaan Barang (contoh: B:5 RR:0 RB:0)", _keadaanGabung),
+                    _buildTextField(
+                      "Keadaan Barang (contoh: B:5 RR:0 RB:0)",
+                      _keadaanGabung,
+                    ),
                     const SizedBox(height: 15),
                     _buildTextField("No Barcode:", _barcode),
-                    const SizedBox(height: 25),
+                    const SizedBox(height: 15),
+                    _buildDropdownField<int>(
+                      hint: "Pilih Pemesanan",
+                      value: _selectedPemesananId,
+                      items: _pemesananPending
+                          .where(
+                            (pem) => pem['status'] != 'complete',
+                          ) // filter yang sudah komplit
+                          .map((pem) {
+                            return DropdownMenuItem<int>(
+                              value: pem['id'],
+                              child: Text(
+                                "${pem['nama_barang']} (${pem['nama_pemesan']})",
+                              ),
+                            );
+                          })
+                          .toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _selectedPemesananId = val;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 15),
+                    _buildTextFieldDisabled(_kategori.text, _kategori),
+                    const SizedBox(height: 20),
 
                     GestureDetector(
                       onTap: _showImageOptions,
@@ -254,6 +312,7 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -274,6 +333,53 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
         ),
         hintStyle: const TextStyle(color: Colors.black54),
       ),
+    );
+  }
+
+  Widget _buildTextFieldDisabled(
+    String hint,
+    TextEditingController controller,
+  ) {
+    return TextField(
+      readOnly: true,
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: AppColors.textColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        hintStyle: const TextStyle(color: Colors.black54),
+      ),
+    );
+  }
+
+  Widget _buildDropdownField<T>({
+    required String hint,
+    required T? value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return DropdownButtonFormField<T>(
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: AppColors.textColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        hintStyle: const TextStyle(color: Colors.black54),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 15,
+        ),
+      ),
+      value: value,
+      items: items,
+      onChanged: onChanged,
     );
   }
 }

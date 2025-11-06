@@ -43,7 +43,7 @@ class BerandaAtk extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MasukkanDataBarang(),
+                      builder: (context) => const MasukkanDataBarangATK(),
                     ),
                   );
                   // Navigasi ke halaman input data
@@ -54,7 +54,7 @@ class BerandaAtk extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const DataBarangKeluar(),
+                      builder: (context) => const DataBarangKeluarATK(),
                     ),
                   );
                   // Navigasi ke halaman stock per lantai
@@ -65,7 +65,7 @@ class BerandaAtk extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const PemesananBarang(),
+                      builder: (context) => const PemesananBarangATK(),
                     ),
                   );
                   // Navigasi ke halaman stock berdasarkan no surat

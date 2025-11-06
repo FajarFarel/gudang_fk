@@ -1,7 +1,7 @@
 // lib/service/barang_service.dart
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../api/config.dart';
+import '../../api/config.dart';
 
 class IsiTabelService { // ubah sesuai IP backend kamu
 

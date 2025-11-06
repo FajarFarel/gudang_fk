@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
-import 'package:gudang_fk/controller/controller_cari_barang_barcode.dart';
+import 'package:gudang_fk/controller/gudang/controller_cari_barang_barcode.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -182,13 +182,14 @@ class _CariBarangBerdasarkanBarcodeState
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 barangData!["foto_barang"] != null &&
-                        barangData!["foto_barang"].toString().isNotEmpty
+                        barangData!["foto_barang"].toString().trim().isNotEmpty
                     ? Image.network(
-                        barangData!["foto_barang"],
+                        barangData!["foto_barang"].toString().trim(),
                         height: 150,
                         fit: BoxFit.cover,
                       )
                     : const Text("-", style: TextStyle(color: Colors.white)),
+
                 const SizedBox(height: 20),
                 Text(
                   barangData!["nama_barang"] ?? "-",

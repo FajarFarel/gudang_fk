@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
-import 'package:gudang_fk/controller/tabel_perlantai_controller.dart';
+import 'package:gudang_fk/controller/gudang/tabel_perlantai_controller.dart';
 import 'package:gudang_fk/pages/gudang/halaman_tabel/tabel_per_lantai.dart';
 
 class TabelDataBarangPerlantai extends StatelessWidget {

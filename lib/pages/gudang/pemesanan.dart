@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
-import 'package:gudang_fk/controller/controller_pemesanan.dart';
+import 'package:gudang_fk/controller/gudang/controller_pemesanan.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -28,6 +28,7 @@ class _PemesananPageState extends State<PemesananPage> {
   final _NamaRuanganController = TextEditingController();
   final _HargaController = TextEditingController();
   final _LInkPembelianController = TextEditingController();
+  final _kategori = TextEditingController(text: "gudang");
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -104,6 +105,7 @@ class _PemesananPageState extends State<PemesananPage> {
       'nama_ruangan': _NamaRuanganController.text.trim(),
       'harga': _HargaController.text.trim(),
       'link_pembelian': _LInkPembelianController.text.trim(),
+      'kategori': _kategori.text.trim(),
     };
 
     final success = await _controller.buatPemesanan(data, _pickedImage);
@@ -187,6 +189,8 @@ class _PemesananPageState extends State<PemesananPage> {
                     _buildTextField("Harga", _HargaController),
                     const SizedBox(height: 15),
                     _buildTextField("Link Pembelian", _LInkPembelianController),
+                    const SizedBox(height: 15),
+                    _buildTextFieldDisabled(_kategori.text, _kategori),
                     const SizedBox(height: 20),
 
                     GestureDetector(
@@ -262,6 +266,7 @@ class _PemesananPageState extends State<PemesananPage> {
                   ),
                 ),
               ),
+              const SizedBox(height: 20)
             ],
           ),
         ),
@@ -271,6 +276,23 @@ class _PemesananPageState extends State<PemesananPage> {
 
   Widget _buildTextField(String hint, TextEditingController controller) {
     return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: true,
+        fillColor: AppColors.textColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        hintStyle: const TextStyle(color: Colors.black54),
+      ),
+    );
+  }
+
+    Widget _buildTextFieldDisabled(String hint, TextEditingController controller) {
+    return TextField(
+      readOnly: true,
       controller: controller,
       decoration: InputDecoration(
         hintText: hint,

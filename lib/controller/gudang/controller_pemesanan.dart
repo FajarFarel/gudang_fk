@@ -1,5 +1,5 @@
 import "dart:io";
-import '../service/service_pemesanan.dart';
+import '../../service/gudang/service_pemesanan.dart';
 
 class ControllerPemesanan {
   final ServicePemesanan _service = ServicePemesanan();

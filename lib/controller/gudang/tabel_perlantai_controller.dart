@@ -1,4 +1,4 @@
-import 'package:gudang_fk/service/tabel_perlantai_service.dart';
+import 'package:gudang_fk/service/gudang/tabel_perlantai_service.dart';
 
 class LantaiController {
   Future<List<int>> getLantaiList() async {

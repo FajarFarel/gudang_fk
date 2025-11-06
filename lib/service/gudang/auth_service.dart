@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../api/config.dart';
+import '../../../api/config.dart';
 
 class AuthService {
 Future<String?> login(String nama, String password) async {

@@ -1,5 +1,5 @@
   // lib/controller/barang_controller.dart
-  import 'package:gudang_fk/service/isi_tabel_service.dart';
+  import 'package:gudang_fk/service/gudang/isi_tabel_service.dart';
 
   class IsiTabelController {
     Future<List<Map<String, dynamic>>> getBarangByLantai(int lantai) async {

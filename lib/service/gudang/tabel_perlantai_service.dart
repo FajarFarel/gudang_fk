@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../api/config.dart';
+import '../../api/config.dart';
 
 class LantaiService {
   static Future<List<int>> fetchLantai() async {
