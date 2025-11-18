@@ -52,20 +52,20 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchPemesananPending();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _fetchPemesananPending();
+  // }
 
-  void _fetchPemesananPending() async {
-    final response = await _controller.ambilPemesananPending(
-      kategori: _kategori.text,
-    );
-    setState(() {
-      _pemesananPending = response;
-    });
-  }
+  // void _fetchPemesananPending() async {
+  //   final response = await _controller.ambilPemesananPending(
+  //     kategori: _kategori.text,
+  //   );
+  //   setState(() {
+  //     _pemesananPending = response;
+  //   });
+  // }
 
   void _showImageOptions() {
     showModalBottomSheet(
@@ -146,7 +146,9 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
     };
 
     final success = await _controller.tambahBarang(data, _pickedImage);
-    final updatedList = await _controller.ambilPemesananPending(kategori: _kategori.text);
+    // final updatedList = await _controller.ambilPemesananPending(
+    //   kategori: _kategori.text,
+    // );
 
     if (success) {
       ScaffoldMessenger.of(
@@ -165,11 +167,11 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
         _keadaanGabung.clear();
         _selectedPemesananId = null;
         _barcode.clear();
-        _pemesananPending = updatedList;
+        // _pemesananPending = updatedList;
       });
 
       // Refresh daftar pemesanan pending
-      _fetchPemesananPending();
+      // _fetchPemesananPending();
     } else {
       ScaffoldMessenger.of(
         context,
@@ -237,30 +239,30 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
                     const SizedBox(height: 15),
                     _buildTextField("No Barcode:", _barcode),
                     const SizedBox(height: 15),
-                    _buildDropdownField<int>(
-                      hint: "Pilih Pemesanan",
-                      value: _selectedPemesananId,
-                      items: _pemesananPending
-                          .where(
-                            (pem) => pem['status'] != 'complete',
-                          ) // filter yang sudah komplit
-                          .map((pem) {
-                            return DropdownMenuItem<int>(
-                              value: pem['id'],
-                              child: Text(
-                                "${pem['nama_barang']} (${pem['nama_pemesan']})",
-                              ),
-                            );
-                          })
-                          .toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          _selectedPemesananId = val;
-                        });
-                      },
-                    ),
+                    // _buildDropdownField<int>(
+                    //   hint: "Pilih Pemesanan",
+                    //   value: _selectedPemesananId,
+                    //   items: _pemesananPending
+                    //       .where(
+                    //         (pem) => pem['status'] != 'complete',
+                    //       ) // filter yang sudah komplit
+                    //       .map((pem) {
+                    //         return DropdownMenuItem<int>(
+                    //           value: pem['id'],
+                    //           child: Text(
+                    //             "${pem['nama_barang']} (${pem['nama_pemesan']})",
+                    //           ),
+                    //         );
+                    //       })
+                    //       .toList(),
+                    //   onChanged: (val) {
+                    //     setState(() {
+                    //       _selectedPemesananId = val;
+                    //     });
+                    //   },
+                    // ),
 
-                    const SizedBox(height: 15),
+                    // const SizedBox(height: 15),
                     _buildTextFieldDisabled(_kategori.text, _kategori),
                     const SizedBox(height: 20),
 
@@ -356,30 +358,30 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
     );
   }
 
-  Widget _buildDropdownField<T>({
-    required String hint,
-    required T? value,
-    required List<DropdownMenuItem<T>> items,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return DropdownButtonFormField<T>(
-      decoration: InputDecoration(
-        hintText: hint,
-        filled: true,
-        fillColor: AppColors.textColor,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
-        hintStyle: const TextStyle(color: Colors.black54),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 15,
-        ),
-      ),
-      value: value,
-      items: items,
-      onChanged: onChanged,
-    );
-  }
+//   Widget _buildDropdownField<T>({
+//     required String hint,
+//     required T? value,
+//     required List<DropdownMenuItem<T>> items,
+//     required ValueChanged<T?> onChanged,
+//   }) {
+//     return DropdownButtonFormField<T>(
+//       decoration: InputDecoration(
+//         hintText: hint,
+//         filled: true,
+//         fillColor: AppColors.textColor,
+//         border: OutlineInputBorder(
+//           borderRadius: BorderRadius.circular(30),
+//           borderSide: BorderSide.none,
+//         ),
+//         hintStyle: const TextStyle(color: Colors.black54),
+//         contentPadding: const EdgeInsets.symmetric(
+//           horizontal: 20,
+//           vertical: 15,
+//         ),
+//       ),
+//       value: value,
+//       items: items,
+//       onChanged: onChanged,
+//     );
+//   }
 }

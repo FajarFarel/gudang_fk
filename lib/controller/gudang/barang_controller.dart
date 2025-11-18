@@ -13,10 +13,10 @@ class BarangController {
       return false;
     }
 
-    if (data['id_pemesanan'] == null) {
-      print("⚠️ Harap pilih pesanan terlebih dahulu!");
-      return false;
-    }
+    // if (data['id_pemesanan'] == null) {
+    //   print("⚠️ Harap pilih pesanan terlebih dahulu!");
+    //   return false;
+    // }
 
     final result = await _service.tambahBarang(data, pickedImage);
     if (result) {
@@ -29,11 +29,11 @@ class BarangController {
     return result;
   }
 
-  Future<List<Map<String, dynamic>>> ambilPemesananPending({
-    String? kategori,
-  }) async {
-    final result = await _service.getPemesananPending(kategori: kategori);
-    return result.map((e) => Map<String, dynamic>.from(e)).toList();
-  }
+  // Future<List<Map<String, dynamic>>> ambilPemesananPending({
+  //   String? kategori,
+  // }) async {
+  //   final result = await _service.getPemesananPending(kategori: kategori);
+  //   return result.map((e) => Map<String, dynamic>.from(e)).toList();
+  // }
   
 }

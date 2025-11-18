@@ -9,7 +9,7 @@ class BarangService {
     Map<String, dynamic> data,
     File? pickedImage,
   ) async {
-    final url = Uri.parse('${Config.baseUrl}/api/input');
+    final url = Uri.parse('${Config.baseUrl}/api/atkmasuk');
     print("➡️ POST (multipart): $url");
 
     try {
@@ -56,32 +56,5 @@ class BarangService {
       print("❌ Error: $e");
       return [];
     }
-  }
-
-// Future<List<dynamic>> getPemesananPending({String? kategori}) async {
-//   final url = Uri.parse(
-//     kategori != null && kategori.isNotEmpty
-//         ? '${Config.baseUrl}/api/pemesanan/pending?kategori=$kategori'
-//         : '${Config.baseUrl}/api/pemesanan/pending',
-//   );
-
-//   try {
-//     final response = await http.get(url);
-//     if (response.statusCode == 200) {
-//       return jsonDecode(response.body);
-//     } else {
-//       throw Exception("Gagal ambil data pemesanan pending");
-//     }
-//   } catch (e) {
-//     print("❌ Error ambil pemesanan: $e");
-//     return [];
-//   }
-// }
-
-
-  Future<bool> updateStatusPemesanan(int idPemesanan, String statusBaru) async {
-    final url = Uri.parse('${Config.baseUrl}/api/pemesanan/$idPemesanan');
-    final response = await http.put(url, body: {'status': statusBaru});
-    return response.statusCode == 200;
   }
 }

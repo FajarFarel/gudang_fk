@@ -20,6 +20,14 @@ start cmd /k python run.py
 
 timeout /t 2 >nul
 
+
+echo ====================================
+echo Membuka Ngrok...
+echo ====================================
+
+:: 3️⃣ Buka ngrok di CMD baru
+start cmd /k ngrok http 5000
+
 echo ====================================
 echo SEMUA SUDAH BERJALAN.
 echo ====================================

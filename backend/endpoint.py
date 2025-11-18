@@ -1,6 +1,6 @@
 from fileinput import filename
 from flask import Blueprint, jsonify, request, current_app
-import pymysql
+import pymysql.cursors
 from werkzeug.utils import secure_filename
 from connetion import get_db_connection
 from extensions import bcrypt
@@ -9,6 +9,7 @@ import time
 from config import Base_URL
 from datetime import datetime
 import locale
+from fuzzy import match_to_canon
 
 api_bp = Blueprint("api", __name__)
 
@@ -65,7 +66,7 @@ def tambah_barang_masuk():
         file = request.files.get("foto_barang")
 
         required_fields = [
-            "id_pemesanan", "no_bmn", "tanggal_barang_datang",
+            "no_bmn", "tanggal_barang_datang",
             "spesifikasi", "nama_barang", "jumlah_satuan",
             "nama_ruangan", "lantai", "B", "RR", "RB", "no_barcode", "kategori"
         ]
@@ -92,21 +93,16 @@ def tambah_barang_masuk():
         cursor = conn.cursor()
         cursor.execute("""
             INSERT INTO barang_masuk (
-                id_pemesanan, no_bmn, tanggal_barang_datang, spesifikasi, nama_barang,
+                no_bmn, tanggal_barang_datang, spesifikasi, nama_barang,
                 jumlah_satuan, nama_ruangan, lantai, B, RR, RB, no_barcode, foto_barang, kategori
-            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
         """, (
-            data["id_pemesanan"], data["no_bmn"], data["tanggal_barang_datang"], data["spesifikasi"],
+            data["no_bmn"], data["tanggal_barang_datang"], data["spesifikasi"],
             data["nama_barang"], data["jumlah_satuan"], data["nama_ruangan"], data["lantai"],
             data["B"], data["RR"], data["RB"], data["no_barcode"], unique_filename, data["kategori"]
         ))
 
         # Update status pemesanan jadi complete
-        cursor.execute("""
-            UPDATE pemesanan
-            SET status = 'complete'
-            WHERE id = %s AND status = 'pending'
-        """, (data["id_pemesanan"],))
 
         conn.commit()
         cursor.close()
@@ -127,7 +123,12 @@ def get_lantai():
 
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT DISTINCT lantai FROM barang_masuk")
+        cursor.execute("""
+            SELECT DISTINCT lantai 
+            FROM barang_masuk 
+            WHERE kategori = 'gudang'
+            ORDER BY lantai DESC
+        """)
         lantai_list = cursor.fetchall()
         return jsonify(lantai_list), 200
     except Exception as e:
@@ -136,6 +137,8 @@ def get_lantai():
     finally:
         cursor.close()
         conn.close()
+
+
 
 @api_bp.route('/isitabel/<int:lantai>', methods=['GET'])
 def get_barang_by_lantai(lantai):
@@ -389,36 +392,34 @@ def get_pemesanan(id):
         kategori = request.args.get('kategori')  # ✅ ambil query param kategori (opsional)
 
         if id is not None:
-            # ✅ Kalau ada ID → ambil 1 data
+    # Kalau ada ID → ambil 1 data
             cursor.execute("""
                 SELECT 
                     id, nama_pemesan, nama_barang, jumlah, nama_ruangan, harga,
-                    link_pembelian, tanggal_pemesanan, foto, satuan, spesifikasi, kategori,
-                    status
+                    link_pembelian, tanggal_pemesanan, foto, satuan, spesifikasi, kategori
                 FROM pemesanan
                 WHERE id = %s
             """, (id,))
         else:
-            # ✅ Kalau gak ada ID → ambil semua, tapi bisa difilter kategori
-            if kategori:
-                cursor.execute("""
-                    SELECT 
-                        id, nama_pemesan, nama_barang, jumlah, nama_ruangan, harga,
-                        link_pembelian, tanggal_pemesanan, foto, satuan, spesifikasi, kategori,
-                        status
-                    FROM pemesanan
-                    WHERE kategori = %s
-                    ORDER BY tanggal_pemesanan DESC
-                """, (kategori,))
-            else:
-                cursor.execute("""
-                    SELECT 
-                        id, nama_pemesan, nama_barang, jumlah, nama_ruangan, harga,
-                        link_pembelian, tanggal_pemesanan, foto, satuan, spesifikasi, kategori,
-                        status
-                    FROM pemesanan
-                    ORDER BY tanggal_pemesanan DESC
-                """)
+            # Ambil kategori dari query param
+            kategori = request.args.get('kategori')
+
+            # Wajib ada kategori
+            if not kategori:
+                return jsonify({
+                    "error": "Kategori wajib diisi. Contoh: /pemesanan?kategori=atk"
+                }), 400
+
+            # Ambil data berdasarkan kategori
+            cursor.execute("""
+                SELECT 
+                    id, nama_pemesan, nama_barang, jumlah, nama_ruangan, harga,
+                    link_pembelian, tanggal_pemesanan, foto, satuan, spesifikasi, kategori
+                FROM pemesanan
+                WHERE kategori = %s
+                ORDER BY tanggal_pemesanan DESC
+            """, (kategori,))
+
 
         rows = cursor.fetchall()
 
@@ -454,30 +455,282 @@ def get_pemesanan(id):
         cursor.close()
         conn.close()
 
+@api_bp.route('/atkmasuk', methods=['POST'])
+def tambah_atk_masuk():
+    try:
+        data = request.form
+        file = request.files.get("foto_barang")
 
-@api_bp.route('/pemesanan/pending', methods=['GET'])
-def get_pending_pemesanan():
-    kategori = request.args.get('kategori')  # ambil kategori dari query param (opsional)
+        required_fields = [
+            "no_bmn", "tanggal_barang_datang",
+            "spesifikasi", "nama_barang", "jumlah_satuan",
+            "B", "RR", "RB", "no_barcode", "kategori"
+        ]
 
-    conn = get_db_connection()
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
+        # Validasi input wajib
+        if not all([data.get(f) for f in required_fields]) or not file or file.filename == '':
+            return jsonify({"error": "Semua field harus diisi dan foto barang harus diupload!"}), 400
 
-    if kategori:
+        # Validasi file
+        def allowed_file(filename):
+            return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
+
+        if not allowed_file(file.filename):
+            return jsonify({"error": "Format file tidak didukung! (Gunakan .jpg, .jpeg, .png)"}), 400
+
+        input_name = data["nama_barang"]
+        nama_corrected = match_to_canon(input_name)
+        # kalau mau score, tinggal: match_to_canon(nama_input, return_score=True)
+
+        upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'atk')
+        os.makedirs(upload_folder, exist_ok=True)
+        filename = secure_filename(file.filename)
+        unique_filename = f"{int(time.time())}_{filename}"
+        save_path = os.path.join(upload_folder, unique_filename)
+        file.save(save_path)
+
+
+        conn = get_db_connection()
+        cursor = conn.cursor()
         cursor.execute("""
-            SELECT id, nama_barang, nama_pemesan, tanggal_pemesanan, jumlah
-            FROM pemesanan
-            WHERE status = 'pending' AND kategori = %s
-            ORDER BY tanggal_pemesanan ASC
-        """, (kategori,))
-    else:
-        cursor.execute("""
-            SELECT id, nama_barang, nama_pemesan, tanggal_pemesanan, jumlah
-            FROM pemesanan
-            WHERE status = 'pending'
-            ORDER BY tanggal_pemesanan ASC
-        """)
+            INSERT INTO barang_masuk (
+                no_bmn, tanggal_barang_datang, spesifikasi, nama_barang,
+                jumlah_satuan, B, RR, RB, no_barcode, foto_barang, kategori
+            ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            data["no_bmn"],
+            data["tanggal_barang_datang"],
+            data["spesifikasi"],
+            nama_corrected,     # ⬅️ SIMPAN NAMA SUDAH DIBENERIN
+            data["jumlah_satuan"],
+            data["B"],
+            data["RR"],
+            data["RB"],
+            data["no_barcode"],
+            unique_filename,
+            data["kategori"]
+        ))
 
-    data = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return jsonify(data), 200
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "message": "✅ Data ATK berhasil ditambahkan!",
+            "nama_asli": input_name,
+            "nama_disimpan": nama_corrected
+        }), 201
+
+    except Exception as e:
+        print("❌ ERROR:", e)
+        return jsonify({"error": str(e)}), 500
+
+    
+@api_bp.route('/pemesananatk', methods=['POST'])
+def tambah_pemesanan_atk():
+    try:
+        data = request.form
+        file = request.files.get("foto")
+
+        print("📦 Data form:", dict(data))
+        print("📷 File:", file)
+        print("📷 Filename:", file.filename if file else None)
+
+        # Semua field wajib sesuai tabel
+        required_fields = [
+            "nama_pemesan", "nama_barang", "jumlah",
+            "harga", "link_pembelian", "satuan", "spesifikasi", "kategori"
+        ]
+        if not all(data.get(f) for f in required_fields) or not file or file.filename == '':
+            return jsonify({"error": "Semua field harus diisi dan foto barang harus diupload!"}), 400
+
+        # Validasi file
+        def allowed_file(filename):
+            return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg'}
+        if not allowed_file(file.filename):
+            return jsonify({"error": "Format file tidak didukung! (Gunakan .jpg, .jpeg, .png)"}), 400
+
+        # Simpan foto
+        upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'pemesanan')
+        os.makedirs(upload_folder, exist_ok=True)
+        filename = secure_filename(file.filename)
+        unique_filename = f"{int(time.time())}_{filename}"
+        save_path = os.path.join(upload_folder, unique_filename)
+        file.save(save_path)
+
+        tanggal_pemesanan = datetime.now()
+
+        # Simpan data ke database (tambah kolom kategori)
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO pemesanan (
+                        nama_pemesan, jumlah, foto, tanggal_pemesanan,
+                        nama_barang, harga, link_pembelian,
+                        satuan, spesifikasi, kategori
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    data["nama_pemesan"], data["jumlah"], unique_filename, tanggal_pemesanan,
+                    data["nama_barang"],
+                    data["harga"], data["link_pembelian"],
+                    data["satuan"], data["spesifikasi"], data["kategori"]
+                ))
+                conn.commit()
+                new_id = cursor.lastrowid
+
+        return jsonify({
+            "message": "Data pemesanan berhasil ditambahkan!",
+            "id": new_id
+        }), 201
+
+    except Exception as e:
+        print("❌ ERROR:", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@api_bp.route('/stok', methods=['GET'])
+def get_stok():
+    try:
+        kategori = request.args.get("kategori")  # bisa None
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({"error": "Gagal konek ke database"}), 500
+
+        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
+
+            # Query fleksibel tergantung kategori
+            if kategori:
+                cursor.execute("""
+                    SELECT nama_barang, jumlah_satuan, kategori
+                    FROM barang_masuk
+                    WHERE kategori = %s
+                """, (kategori,))
+            else:
+                cursor.execute("""
+                    SELECT nama_barang, jumlah_satuan, kategori
+                    FROM barang_masuk
+                """)
+
+            data = cursor.fetchall()
+
+        stok = {}
+
+        for item in data:
+            corrected = match_to_canon(item['nama_barang'])
+            qty = int(item['jumlah_satuan'])
+
+            # kalau kategori belum ada → buat
+            if corrected not in stok:
+                stok[corrected] = {
+                    "total": 0,
+                    "kategori": item["kategori"]  # ambil kategori asli
+                }
+
+            stok[corrected]["total"] += qty
+
+        return jsonify(stok), 200
+
+    except Exception as e:
+        print("❌ ERROR get_stok:", e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+@api_bp.route('/atk/keluar', methods=['POST'])
+def atk_keluar():
+    try:
+        data = request.form
+        file = request.files.get("foto")  # opsional
+
+        nama_pengambil = data.get("nama")
+        nama_input = data.get("nama_barang")
+        jumlah_keluar = data.get("jumlah")
+
+        if not nama_pengambil or not nama_input or not jumlah_keluar:
+            return jsonify({"error": "Field nama, nama_barang, dan jumlah wajib diisi"}), 400
+
+        jumlah_keluar = int(jumlah_keluar)
+
+        # fuzzy name
+        nama_corrected = match_to_canon(nama_input)
+
+        conn = get_db_connection()
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+        # cek stok barang
+        cursor.execute("""
+            SELECT id, nama_barang, jumlah_satuan
+            FROM barang_masuk
+            WHERE nama_barang = %s
+            ORDER BY id ASC
+        """, (nama_corrected,))
+
+        rows = cursor.fetchall()
+
+        if not rows:
+            return jsonify({"error": f"Barang '{nama_corrected}' tidak ditemukan"}), 404
+
+        total_stok = sum(int(r["jumlah_satuan"]) for r in rows)
+
+        if total_stok < jumlah_keluar:
+            return jsonify({
+                "error": "Stok tidak cukup!",
+                "stok_tersedia": total_stok
+            }), 400
+
+        foto_filename = None
+
+        if file and file.filename != "":
+            upload_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'atk_keluar')
+            os.makedirs(upload_folder, exist_ok=True)
+            safe_name = secure_filename(file.filename)
+            foto_filename = f"{int(time.time())}_{safe_name}"
+            save_path = os.path.join(upload_folder, foto_filename)
+            file.save(save_path)
+
+
+        sisa = jumlah_keluar
+
+        for row in rows:
+            if sisa <= 0:
+                break
+
+            stok = int(row["jumlah_satuan"])
+
+            if stok <= sisa:
+                cursor.execute("UPDATE barang_masuk SET jumlah_satuan = 0 WHERE id = %s", (row["id"],))
+                sisa -= stok
+            else:
+                cursor.execute(
+                    "UPDATE barang_masuk SET jumlah_satuan = %s WHERE id = %s",
+                    (stok - sisa, row["id"])
+                )
+                sisa = 0
+
+        cursor.execute("""
+            INSERT INTO atk_keluar (nama, nama_barang, jumlah, foto)
+            VALUES (%s, %s, %s, %s)
+        """, (
+            nama_pengambil,
+            nama_corrected,
+            jumlah_keluar,
+            foto_filename
+        ))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "message": "Stok berhasil dikurangi & dicatat",
+            "nama_pengambil": nama_pengambil,
+            "nama_barang": nama_corrected,
+            "jumlah_keluar": jumlah_keluar,
+            "stok_sisa": total_stok - jumlah_keluar
+        }), 200
+
+    except Exception as e:
+        print("❌ ERROR ATK KELUAR:", e)
+        return jsonify({"error": str(e)}), 500

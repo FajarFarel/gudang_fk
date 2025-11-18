@@ -4,7 +4,7 @@ import '../../api/config.dart';
 
 class TabelPemesananService {
   Future<List<Map<String, dynamic>>> fetchPemesanan() async {
-    final url = Uri.parse("${Config.baseUrl}/api/pemesanan?kategori=gudang");
+    final url = Uri.parse("${Config.baseUrl}/api/pemesanan?kategori=atk");
     final response = await http.get(url);
 
     if (response.statusCode == 200) {

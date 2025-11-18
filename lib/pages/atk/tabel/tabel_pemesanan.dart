@@ -1,42 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:gudang_fk/controller/gudang/tabel_pemesanan_controller.dart';
+import 'package:gudang_fk/controller/atk/tabel_pemesanan_atk_controller.dart';
 import 'package:gudang_fk/utility/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class TabelPemesanan extends StatefulWidget {
-  const TabelPemesanan({super.key});
+class TabelPemesananAtk extends StatefulWidget {
+  const TabelPemesananAtk({super.key});
 
   @override
-  State<TabelPemesanan> createState() => _TabelPemesananState();
+  State<TabelPemesananAtk> createState() => _TabelPemesananAtkState();
 }
 
-class _TabelPemesananState extends State<TabelPemesanan> {
-  final TabelPemesananController _controller = TabelPemesananController();
+class _TabelPemesananAtkState extends State<TabelPemesananAtk> {
+  final TabelPemesananATKController _controller = TabelPemesananATKController();
 
   @override
   void initState() {
     super.initState();
     initializeDateFormatting('id_ID', null);
-
-    // 🧹 Bersihkan cache biar gambar baru muncul
     CachedNetworkImage.evictFromCache("");
   }
 
   String formatTanggal(String tgl) {
     try {
-      // Bersihkan spasi
       tgl = tgl.trim();
 
-      // Kalau bukan format "YYYY-MM-DD", jangan parse
       if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(tgl)) {
         return tgl;
       }
 
-      // Format normal dari backend, parse seperti biasa
       DateTime parsed = DateTime.parse(tgl);
       return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(parsed);
     } catch (e) {
@@ -46,35 +40,35 @@ class _TabelPemesananState extends State<TabelPemesanan> {
   }
 
   TableCell header(String text) => TableCell(
-    child: Container(
-      color: AppColors.tabelHeaderColor,
-      padding: const EdgeInsets.all(6),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          color: AppColors.textColor,
+        child: Container(
+          color: AppColors.tabelHeaderColor,
+          padding: const EdgeInsets.all(6),
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textColor,
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   TableCell cell(String text) => TableCell(
-    child: Container(
-      padding: const EdgeInsets.all(8),
-      alignment: Alignment.center,
-      color: const Color(0xFFF8F8F8),
-      child: Text(text, textAlign: TextAlign.center),
-    ),
-  );
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          alignment: Alignment.center,
+          color: const Color(0xFFF8F8F8),
+          child: Text(text, textAlign: TextAlign.center),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Tabel Pemesanan',
+          'Tabel Pemesanan ATK',
           style: TextStyle(color: AppColors.textColor),
         ),
         backgroundColor: AppColors.backgroundColor,
@@ -99,54 +93,28 @@ class _TabelPemesananState extends State<TabelPemesanan> {
           }
 
           final data = snapshot.data ?? [];
-          print("====================================");
-          print("📌 DATA YANG DITERIMA DARI BACKEND:");
-          for (var item in data) {
-            print(item);
-          }
-          print("====================================");
           if (data.isEmpty) {
             return const Center(child: Text('Belum ada data pemesanan'));
           }
 
-          // 🗓️ Group data berdasarkan bulan (aman dari format aneh)
+          // Group data by month
           final groupedByMonth = <String, List<Map<String, dynamic>>>{};
+
           DateTime? safeParseDate(String? input) {
-            print("🔍 Parsing tanggal mentah: '$input'");
-
-            if (input == null || input.trim().isEmpty) {
-              print("⛔ Kosong, skip");
-              return null;
-            }
-
-            final cleaned = input.trim();
-
+            if (input == null || input.trim().isEmpty) return null;
             try {
-              // --- Case 1: Format ISO atau ISO + waktu ---
-              final iso = cleaned.split(" ").first;
-              if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(iso)) {
-                final parsed = DateTime.parse(iso);
-                print("✅ ISO berhasil: $parsed");
-                return parsed;
+              final cleaned = input.split(" ").first.trim();
+
+              if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(cleaned)) {
+                return DateTime.parse(cleaned);
               }
 
-              // --- Case 2: Format Indonesia: 'Senin, 04 November 2025' ---
-              try {
-                final parsedIndo = DateFormat(
-                  'EEEE, dd MMMM yyyy',
-                  'id_ID',
-                ).parseLoose(cleaned);
-
-                print("✅ Format Indo berhasil: $parsedIndo");
-                return parsedIndo;
-              } catch (_) {
-                print("❌ Bukan format Indo");
-              }
-
-              print("❌ Gagal parse semua format");
-              return null;
-            } catch (e) {
-              print("❌ Error parsing tanggal: $e");
+              final possible = DateFormat(
+                'EEEE, dd MMMM yyyy',
+                'id_ID',
+              ).parseLoose(input, true);
+              return possible;
+            } catch (_) {
               return null;
             }
           }
@@ -154,7 +122,7 @@ class _TabelPemesananState extends State<TabelPemesanan> {
           for (var d in data) {
             final tglRaw = d["tanggal_pemesanan"];
             final tgl = safeParseDate(tglRaw);
-            if (tgl == null) continue; // skip kalau gagal parse
+            if (tgl == null) continue;
 
             final bulanKey = DateFormat("MMMM yyyy", "id_ID").format(tgl);
             groupedByMonth.putIfAbsent(bulanKey, () => []).add(d);
@@ -165,19 +133,16 @@ class _TabelPemesananState extends State<TabelPemesanan> {
               final bulan = monthEntry.key;
               final listBulan = monthEntry.value;
 
-              // 🧩 Dalam bulan ini, group lagi berdasarkan tanggal
+              // Group again by date inside the same month
               final groupedByDate = <String, List<Map<String, dynamic>>>{};
               for (var d in listBulan) {
                 final tgl = d["tanggal_pemesanan"] ?? "Tidak diketahui";
-                print("RAW TANGGAL: ${d["tanggal_pemesanan"]}");
-                print("PARSE: ${safeParseDate(d["tanggal_pemesanan"])}");
                 groupedByDate.putIfAbsent(tgl, () => []).add(d);
               }
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔹 Header Bulan
                   Container(
                     color: Colors.blueGrey[200],
                     width: double.infinity,
@@ -191,7 +156,6 @@ class _TabelPemesananState extends State<TabelPemesanan> {
                     ),
                   ),
 
-                  // 🔹 Loop tiap tanggal di bulan ini
                   ...groupedByDate.entries.map((dateEntry) {
                     final tanggal = formatTanggal(dateEntry.key);
                     final listTanggal = dateEntry.value;
@@ -211,6 +175,7 @@ class _TabelPemesananState extends State<TabelPemesanan> {
                             ),
                           ),
                         ),
+
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Table(
@@ -228,12 +193,12 @@ class _TabelPemesananState extends State<TabelPemesanan> {
                                   header("Satuan"),
                                   header("Spesifikasi"),
                                   header("Nama Barang"),
-                                  header("Nama Ruangan"),
                                   header("Harga"),
                                   header("Link Pembelian"),
                                   header("Foto Barang"),
                                 ],
                               ),
+
                               for (int i = 0; i < listTanggal.length; i++)
                                 TableRow(
                                   children: [
@@ -243,29 +208,23 @@ class _TabelPemesananState extends State<TabelPemesanan> {
                                     cell(listTanggal[i]["satuan"] ?? "-"),
                                     cell(listTanggal[i]["spesifikasi"] ?? "-"),
                                     cell(listTanggal[i]["nama_barang"] ?? "-"),
-                                    cell(listTanggal[i]["nama_ruangan"] ?? "-"),
                                     cell(listTanggal[i]["harga"].toString()),
 
-                                    // 🔗 Link Pembelian
+                                    // Link
                                     TableCell(
                                       child: Container(
                                         padding: const EdgeInsets.all(8),
                                         alignment: Alignment.center,
-                                        child:
-                                            (listTanggal[i]["link_pembelian"] ??
-                                                    "")
+                                        child: (listTanggal[i]["link_pembelian"] ?? "")
                                                 .toString()
                                                 .isNotEmpty
                                             ? InkWell(
                                                 onTap: () async {
-                                                  final link =
-                                                      listTanggal[i]["link_pembelian"];
-                                                  final url = Uri.parse(link);
+                                                  final url = Uri.parse(listTanggal[i]["link_pembelian"]);
                                                   if (await canLaunchUrl(url)) {
                                                     await launchUrl(
                                                       url,
-                                                      mode: LaunchMode
-                                                          .externalApplication,
+                                                      mode: LaunchMode.externalApplication,
                                                     );
                                                   }
                                                 },
@@ -273,8 +232,7 @@ class _TabelPemesananState extends State<TabelPemesanan> {
                                                   listTanggal[i]["link_pembelian"],
                                                   style: const TextStyle(
                                                     color: Colors.blue,
-                                                    decoration: TextDecoration
-                                                        .underline,
+                                                    decoration: TextDecoration.underline,
                                                   ),
                                                 ),
                                               )
@@ -282,14 +240,13 @@ class _TabelPemesananState extends State<TabelPemesanan> {
                                       ),
                                     ),
 
-                                    // 🖼️ Foto Barang
+                                    // Foto Barang
                                     TableCell(
                                       child: Container(
                                         padding: const EdgeInsets.all(8),
                                         alignment: Alignment.center,
                                         child: CachedNetworkImage(
-                                          imageUrl:
-                                              listTanggal[i]["foto_url"] ?? "",
+                                          imageUrl: listTanggal[i]["foto_url"] ?? "",
                                           width: 80,
                                           height: 80,
                                           fit: BoxFit.cover,
@@ -307,7 +264,7 @@ class _TabelPemesananState extends State<TabelPemesanan> {
                     );
                   }),
 
-                  // 🖨 Tombol Print per Bulan
+                  // Print Button
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,

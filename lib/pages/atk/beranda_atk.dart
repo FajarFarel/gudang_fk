@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
 import 'package:gudang_fk/pages/atk/data_barang_keluar.dart';
-import 'package:gudang_fk/pages/atk/masukkan_data_barang.dart';
+import 'package:gudang_fk/pages/atk/masukkan_data_barang_atk.dart';
 import 'package:gudang_fk/pages/atk/pemesanan_barang.dart';
 
 class BerandaAtk extends StatelessWidget {
@@ -54,7 +54,7 @@ class BerandaAtk extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const DataBarangKeluarATK(),
+                      builder: (context) => const DataBarangKeluarATKPage(),
                     ),
                   );
                   // Navigasi ke halaman stock per lantai

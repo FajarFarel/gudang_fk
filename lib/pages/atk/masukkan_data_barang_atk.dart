@@ -1,34 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
-import 'package:gudang_fk/controller/gudang/controller_pemesanan.dart';
-import 'package:intl/intl.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../../controller/atk/data_barang_masuk_controller.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'halaman_tabel/tabel_pemesanan.dart';
 
-class PemesananPage extends StatefulWidget {
-  const PemesananPage({super.key});
+class MasukkanDataBarangATK extends StatefulWidget {
+  const MasukkanDataBarangATK({super.key});
 
   @override
-  State<PemesananPage> createState() => _PemesananPageState();
+  State<MasukkanDataBarangATK> createState() => _MasukkanDataBarangATKState();
 }
 
-class _PemesananPageState extends State<PemesananPage> {
+class _MasukkanDataBarangATKState extends State<MasukkanDataBarangATK> {
   final ImagePicker _picker = ImagePicker();
-  final _controller = ControllerPemesanan();
+  final _controller = BarangController();
+  int? _selectedPemesananId;
   File? _pickedImage;
 
-  final _NamaPemesanController = TextEditingController();
-  final _tglPemesanan = TextEditingController();
-  final _JumlahController = TextEditingController();
-  final _satuanController = TextEditingController();
-  final _spesifikasiController = TextEditingController();
-  final _NamaBarangController = TextEditingController();
-  final _NamaRuanganController = TextEditingController();
-  final _HargaController = TextEditingController();
-  final _LInkPembelianController = TextEditingController();
-  final _kategori = TextEditingController(text: "Barang");
+  final _noBmn = TextEditingController();
+  final _tglDatang = TextEditingController();
+  final _namaBarang = TextEditingController();
+  final _spesifikasi = TextEditingController();
+  final _jumlah = TextEditingController();
+  final _keadaanGabung = TextEditingController();
+  final _barcode = TextEditingController();
+  final _kategori = TextEditingController(text: "ATK");
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -45,9 +43,24 @@ class _PemesananPageState extends State<PemesananPage> {
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Gagal ambil gambar: $e')));
+      ).showSnackBar(SnackBar(content: Text('Gagal ambil gambar $e')));
     }
   }
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _fetchPemesananPending();
+  // }
+
+  // void _fetchPemesananPending() async {
+  //   final response = await _controller.ambilPemesananPending(
+  //     kategori: _kategori.text,
+  //   );
+  //   setState(() {
+  //     _pemesananPending = response;
+  //   });
+  // }
 
   void _showImageOptions() {
     showModalBottomSheet(
@@ -60,7 +73,7 @@ class _PemesananPageState extends State<PemesananPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Ambil dari Kamera'),
+              title: const Text('Ambil Foto'),
               onTap: () {
                 Navigator.of(context).pop();
                 _pickImage(ImageSource.camera);
@@ -77,7 +90,9 @@ class _PemesananPageState extends State<PemesananPage> {
             ListTile(
               leading: const Icon(Icons.close),
               title: const Text('Batal'),
-              onTap: () => Navigator.of(context).pop(),
+              onTap: () {
+                Navigator.of(context).pop();
+              },
             ),
           ],
         ),
@@ -88,58 +103,78 @@ class _PemesananPageState extends State<PemesananPage> {
   void _kirimData() async {
     if (_pickedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Harap pilih gambar bukti pemesanan')),
+        const SnackBar(content: Text('❌ Harap pilih gambar dulu')),
       );
       return;
     }
 
-    final DateTime pickedDate = DateTime.parse(_tglPemesanan.text);
+    final DateTime pickedDate = DateFormat('yyyy-MM-dd').parse(_tglDatang.text);
     final String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
 
+    final kondisiText = _keadaanGabung.text.trim();
+
+    int b = 0, rr = 0, rb = 0;
+    final RegExp pattern = RegExp(
+      r'B:(\d+)|RR:(\d+)|RB:(\d+)',
+      caseSensitive: false,
+    );
+    for (final match in pattern.allMatches(kondisiText)) {
+      if (match.group(1) != null) b = int.parse(match.group(1)!);
+      if (match.group(2) != null) rr = int.parse(match.group(2)!);
+      if (match.group(3) != null) rb = int.parse(match.group(3)!);
+    }
+
     final data = {
-      'nama_pemesan': _NamaPemesanController.text.trim(),
-      'jumlah': _JumlahController.text.trim(),
-      'satuan': _satuanController.text.trim(),
-      'spesifikasi': _spesifikasiController.text.trim(),
-      'nama_barang': _NamaBarangController.text.trim(),
-      'nama_ruangan': _NamaRuanganController.text.trim(),
-      'harga': _HargaController.text.trim(),
-      'link_pembelian': _LInkPembelianController.text.trim(),
-      'kategori': _kategori.text.trim(),
+      'id_pemesanan': _selectedPemesananId,
+      'no_bmn': _noBmn.text,
+      'tanggal_barang_datang': formattedDate,
+      'spesifikasi': _spesifikasi.text,
+      'nama_barang': _namaBarang.text,
+      'jumlah_satuan': _jumlah.text,
+      'B': b.toString(),
+      'RR': rr.toString(),
+      'RB': rb.toString(),
+      'no_barcode': _barcode.text,
+      'kategori': _kategori.text,
     };
 
-    final success = await _controller.buatPemesanan(data, _pickedImage);
+    final success = await _controller.tambahBarang(data, _pickedImage);
+    // final updatedList = await _controller.ambilPemesananPending(
+    //   kategori: _kategori.text,
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pemesanan berhasil dikirim')),
+        const SnackBar(content: Text('✅ Data berhasil ditambahkan')),
       );
-      _NamaPemesanController.clear();
-      _JumlahController.clear();
-      _satuanController.clear();
-      _spesifikasiController.clear();
-      _tglPemesanan.clear();
-      _NamaBarangController.clear();
-      _NamaRuanganController.clear();
-      _HargaController.clear();
-      _LInkPembelianController.clear();
+
       setState(() {
         _pickedImage = null;
+        _noBmn.clear();
+        _tglDatang.clear();
+        _spesifikasi.clear();
+        _namaBarang.clear();
+        _jumlah.clear();
+        _keadaanGabung.clear();
+        _selectedPemesananId = null;
+        _barcode.clear();
+        // _pemesananPending = updatedList;
       });
+
     } else {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Gagal mengirim pemesanan')));
+      ).showSnackBar(const SnackBar(content: Text('❌ Gagal menambahkan data')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         title: const Text(
-          'Form Pemesanan',
+          'Masukkan Data Barang ATK',
           style: TextStyle(
             color: AppColors.titleTextColor,
             fontSize: 24,
@@ -151,7 +186,6 @@ class _PemesananPageState extends State<PemesananPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      backgroundColor: AppColors.backgroundColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -169,26 +203,25 @@ class _PemesananPageState extends State<PemesananPage> {
                 ),
                 child: Column(
                   children: [
-                    _buildTextField("Nama", _NamaPemesanController),
+                    _buildTextField("No. BMN:", _noBmn),
                     const SizedBox(height: 15),
                     _buildTextField(
-                      "Tanggal Pemesanan (YYYY-MM-DD)",
-                      _tglPemesanan,
+                      "Tanggal Barang Datang: (yyyy-MM-dd)",
+                      _tglDatang,
                     ),
                     const SizedBox(height: 15),
-                    _buildTextField("Jumlah", _JumlahController),
+                    _buildTextField("Spesifikasi (Merk Barang):", _spesifikasi),
                     const SizedBox(height: 15),
-                    _buildTextField("Satuan", _satuanController),
+                    _buildTextField("Nama Barang:", _namaBarang),
                     const SizedBox(height: 15),
-                    _buildTextField("Spesifikasi", _spesifikasiController),
+                    _buildTextField("Jumlah / Satuan:", _jumlah),
                     const SizedBox(height: 15),
-                    _buildTextField("Nama Barang", _NamaBarangController),
+                    _buildTextField(
+                      "Keadaan Barang (contoh: B:5 RR:0 RB:0)",
+                      _keadaanGabung,
+                    ),
                     const SizedBox(height: 15),
-                    _buildTextField("Nama Ruangan", _NamaRuanganController),
-                    const SizedBox(height: 15),
-                    _buildTextField("Harga", _HargaController),
-                    const SizedBox(height: 15),
-                    _buildTextField("Link Pembelian", _LInkPembelianController),
+                    _buildTextField("No Barcode:", _barcode),
                     const SizedBox(height: 15),
                     _buildTextFieldDisabled(_kategori.text, _kategori),
                     const SizedBox(height: 20),
@@ -198,22 +231,22 @@ class _PemesananPageState extends State<PemesananPage> {
                       child: Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: AppColors.textColor,
+                          color: AppColors.buttonColor,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: _pickedImage == null
                             ? SvgPicture.asset(
                                 'assets/kamera.svg',
-                                height: 50,
                                 width: 50,
+                                height: 50,
                                 color: Colors.black54,
                               )
                             : ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(12),
                                 child: Image.file(
                                   _pickedImage!,
-                                  height: 100,
                                   width: 100,
+                                  height: 100,
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -227,46 +260,21 @@ class _PemesananPageState extends State<PemesananPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.buttonColor2,
-                    foregroundColor: AppColors.buttonColor,
                     padding: const EdgeInsets.symmetric(vertical: 15),
+                    backgroundColor: AppColors.buttonColor,
+                    foregroundColor: AppColors.buttonTextColor,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   onPressed: _kirimData,
                   child: const Text(
-                    "Kirim Pemesanan",
+                    "Kirim",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.buttonColor2,
-                    foregroundColor: AppColors.buttonColor,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => TabelPemesanan(),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    "Tabel Pemesanan",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20)
             ],
           ),
         ),
@@ -290,7 +298,10 @@ class _PemesananPageState extends State<PemesananPage> {
     );
   }
 
-    Widget _buildTextFieldDisabled(String hint, TextEditingController controller) {
+  Widget _buildTextFieldDisabled(
+    String hint,
+    TextEditingController controller,
+  ) {
     return TextField(
       readOnly: true,
       controller: controller,
@@ -306,4 +317,31 @@ class _PemesananPageState extends State<PemesananPage> {
       ),
     );
   }
+
+  // Widget _buildDropdownField<T>({
+  //   required String hint,
+  //   required T? value,
+  //   required List<DropdownMenuItem<T>> items,
+  //   required ValueChanged<T?> onChanged,
+  // }) {
+  //   return DropdownButtonFormField<T>(
+  //     decoration: InputDecoration(
+  //       hintText: hint,
+  //       filled: true,
+  //       fillColor: AppColors.textColor,
+  //       border: OutlineInputBorder(
+  //         borderRadius: BorderRadius.circular(30),
+  //         borderSide: BorderSide.none,
+  //       ),
+  //       hintStyle: const TextStyle(color: Colors.black54),
+  //       contentPadding: const EdgeInsets.symmetric(
+  //         horizontal: 20,
+  //         vertical: 15,
+  //       ),
+  //     ),
+  //     value: value,
+  //     items: items,
+  //     onChanged: onChanged,
+  //   );
+  // }
 }

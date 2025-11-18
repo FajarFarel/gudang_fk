@@ -4,4 +4,4 @@ DB_PASSWORD = "Nova0920"
 DB_NAME = "gudang_fk"
 
 # Base_URL = "http://10.0.5.41:5000"
-Base_URL = "https://fce9e94912b5.ngrok-free.app"
+Base_URL = "https://186362abdcd6.ngrok-free.app"
