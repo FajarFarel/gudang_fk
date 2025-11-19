@@ -17,7 +17,6 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
   final ImagePicker _picker = ImagePicker();
   final _controller = BarangController();
   int? _selectedPemesananId;
-  List<Map<String, dynamic>> _pemesananPending = [];
 
   File? _pickedImage;
 
@@ -357,31 +356,4 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
       ),
     );
   }
-
-//   Widget _buildDropdownField<T>({
-//     required String hint,
-//     required T? value,
-//     required List<DropdownMenuItem<T>> items,
-//     required ValueChanged<T?> onChanged,
-//   }) {
-//     return DropdownButtonFormField<T>(
-//       decoration: InputDecoration(
-//         hintText: hint,
-//         filled: true,
-//         fillColor: AppColors.textColor,
-//         border: OutlineInputBorder(
-//           borderRadius: BorderRadius.circular(30),
-//           borderSide: BorderSide.none,
-//         ),
-//         hintStyle: const TextStyle(color: Colors.black54),
-//         contentPadding: const EdgeInsets.symmetric(
-//           horizontal: 20,
-//           vertical: 15,
-//         ),
-//       ),
-//       value: value,
-//       items: items,
-//       onChanged: onChanged,
-//     );
-//   }
 }

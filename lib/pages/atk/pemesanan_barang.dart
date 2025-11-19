@@ -93,7 +93,7 @@ class _PemesananBarangATKState extends State<PemesananBarangATK> {
     }
 
     final DateTime pickedDate = DateTime.parse(_tglPemesanan.text);
-    final String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate);
+    DateFormat('yyyy-MM-dd').format(pickedDate);
 
     final data = {
       'nama_pemesan': _NamaPemesanController.text.trim(),
