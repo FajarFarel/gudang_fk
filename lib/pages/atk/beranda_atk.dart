@@ -3,6 +3,7 @@ import 'package:gudang_fk/utility/colors.dart';
 import 'package:gudang_fk/pages/atk/data_barang_keluar.dart';
 import 'package:gudang_fk/pages/atk/masukkan_data_barang_atk.dart';
 import 'package:gudang_fk/pages/atk/pemesanan_barang.dart';
+import 'package:gudang_fk/pages/atk/cari_atk_berdasarkan_no_bmn.dart';
 
 class BerandaAtk extends StatelessWidget {
   const BerandaAtk({super.key});
@@ -54,10 +55,18 @@ class BerandaAtk extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const DataBarangKeluarATKPage(),
+                      builder: (context) => const DataBarangKeluarATK(),
                     ),
                   );
                   // Navigasi ke halaman stock per lantai
+                }),
+                const SizedBox(height: 20),
+
+                _buildMenuButton("Cari Barang Berdasarkan Bmn", () {
+                  Navigator.push(context, MaterialPageRoute(builder: 
+                    (context) => const CariAtkBerdasarkanNoBmn(),
+                  ));
+                  // Navigasi ke halaman stock berdasarkan no surat
                 }),
                 const SizedBox(height: 20),
 

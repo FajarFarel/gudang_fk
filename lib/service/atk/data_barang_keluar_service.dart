@@ -1,41 +1,61 @@
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import '../../api/config.dart';
+import 'dart:convert';
 
-class BarangKeluarService {
-  // GET STOK ATK
-  Future<Map<String, dynamic>> getStokATK() async {
-    final url = Uri.parse("${Config.baseUrl}/stok?kategori=atk");
-    final res = await http.get(url);
+class ATKService {
 
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    } else {
-      throw Exception("Gagal memuat stok");
-    }
-  }
-
-  // POST BARANG KELUAR
-  Future<bool> kirimBarangKeluar({
-    required String nama,
-    required String namaBarang,
-    required String jumlah,
-    File? foto,
-  }) async {
+  Future<bool> tambahBarang(Map<String, dynamic> data, File? image) async {
     final url = Uri.parse("${Config.baseUrl}/api/atk/keluar");
 
-    var req = http.MultipartRequest('POST', url);
+    var request = http.MultipartRequest("POST", url);
 
-    req.fields['nama'] = nama;
-    req.fields['nama_barang'] = namaBarang;
-    req.fields['jumlah'] = jumlah;
+    data.forEach((key, value) {
+      if (value != null) {
+        request.fields[key] = value.toString();
+      }
+    });
 
-    if (foto != null) {
-      req.files.add(await http.MultipartFile.fromPath('foto', foto.path));
+    if (image != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'foto',
+          image.path,
+          contentType: MediaType('image', 'jpg'),
+        ),
+      );
     }
 
-    final res = await req.send();
-    return res.statusCode == 201;
+    var response = await request.send();
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+
+
+Future<Map<String, dynamic>> getStok({String? kategori}) async {
+  final url = kategori == null
+      ? Uri.parse("${Config.baseUrl}/api/stok")
+      : Uri.parse("${Config.baseUrl}/api/stok?kategori=$kategori");
+
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    return {};
+  }
+}
+
+
+  Future<bool> tambahKeluar(Map<String, dynamic> data) async {
+    final url = Uri.parse("${Config.baseUrl}/api/atk/keluar");
+
+    final response = await http.post(
+      url,
+      body: data,
+    );
+
+    return response.statusCode == 201;
   }
 }

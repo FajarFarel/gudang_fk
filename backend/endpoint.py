@@ -734,3 +734,37 @@ def atk_keluar():
     except Exception as e:
         print("❌ ERROR ATK KELUAR:", e)
         return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/cari/atk/nobmn', methods=['GET'])
+def cari_atk_berdasarkan_nobmn():
+    nobmn = request.args.get('nobmn')
+
+    if not nobmn:
+        return jsonify({"error": "No BMN tidak boleh kosong"}), 400
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+
+    query = """
+        SELECT id, no_bmn, nama_barang, tanggal_barang_datang, lantai, jumlah_satuan,
+               B, RR, RB, foto_barang, no_barcode
+        FROM barang_masuk
+        WHERE no_bmn = %s
+    """
+    cursor.execute(query, (nobmn,))
+    result = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if result:
+        if result.get("foto_barang"):
+            result["foto_barang"] = f"{Base_URL}/uploads/atk/{result['foto_barang']}"
+        return jsonify({"status": "success", "data": result}), 200
+    else:
+        return jsonify({"status": "not_found", "message": "Barang tidak ditemukan"}), 404
+
+
