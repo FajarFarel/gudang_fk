@@ -38,7 +38,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     // Provide a default role (adjust as needed or replace with UI selection)
-    final String role = 'user';
 
     final result = await _authService.login(username, password);
 

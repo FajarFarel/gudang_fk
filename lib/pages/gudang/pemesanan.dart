@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
 import 'package:gudang_fk/controller/gudang/controller_pemesanan.dart';
-import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -179,8 +178,6 @@ class _PemesananPageState extends State<PemesananPage> {
     );
     return;
   }
-
-  final pickedDate = DateTime.parse(_tglPemesanan.text);
 
   final data = {
     'nama_pemesan': _NamaPemesanController.text.trim(),
