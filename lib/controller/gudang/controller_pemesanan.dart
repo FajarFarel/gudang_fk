@@ -29,4 +29,12 @@ class ControllerPemesanan {
   Future<List<dynamic>> ambilSemuaPemesanan() async {
     return await _service.getPemesanan();
   }
+
+  Future<bool> updateStatusPemesanan(bool status) async {
+    return await _service.updateStatusPemesanan(status);
+  }
+
+  Future<bool> cekStatusPemesanan({required bool fresh}) async {
+    return await _service.cekStatusPemesanan();
+  }
 }

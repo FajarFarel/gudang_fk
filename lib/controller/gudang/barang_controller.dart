@@ -20,8 +20,7 @@ class BarangController {
 
     final result = await _service.tambahBarang(data, pickedImage);
     if (result) {
-      print("✅ Barang berhasil ditambahkan, update status pemesanan...");
-      await _service.updateStatusPemesanan(data['id_pemesanan'], 'selesai');
+      print("✅ Barang berhasil ditambahkan");
     } else {
       print("❌ Gagal menambahkan barang");
     }

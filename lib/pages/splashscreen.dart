@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'login.dart';
 import 'package:gudang_fk/api/config.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
@@ -22,9 +23,17 @@ class _SplashscreenState extends State<Splashscreen> {
   @override
   void initState() {
     super.initState();
+    _requestPermissions();
     _checkServer();
   }
-
+  Future<void> _requestPermissions() async {
+  await [
+    Permission.camera,
+    Permission.storage,
+    Permission.photos,
+  ].request();
+}
+    
   Future<void> _checkServer() async {
     final start = DateTime.now();
     try {

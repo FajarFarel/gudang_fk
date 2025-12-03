@@ -5,6 +5,11 @@ import 'package:gudang_fk/controller/atk/tabel_pemesanan_atk_controller.dart';
 import 'package:gudang_fk/utility/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:gudang_fk/controller/atk/hapus_data_atk_controller.dart';
+import 'package:gudang_fk/utility/print.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import '../../../api/config.dart';
 
 class TabelPemesananAtk extends StatefulWidget {
   const TabelPemesananAtk({super.key});
@@ -15,6 +20,8 @@ class TabelPemesananAtk extends StatefulWidget {
 
 class _TabelPemesananAtkState extends State<TabelPemesananAtk> {
   final TabelPemesananATKController _controller = TabelPemesananATKController();
+  final HapusAtkController _hapusController = HapusAtkController();
+  final EditPemesananController _editPemesananAtkController = EditPemesananController();
 
   @override
   void initState() {
@@ -40,28 +47,28 @@ class _TabelPemesananAtkState extends State<TabelPemesananAtk> {
   }
 
   TableCell header(String text) => TableCell(
-        child: Container(
-          color: AppColors.tabelHeaderColor,
-          padding: const EdgeInsets.all(6),
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textColor,
-            ),
-          ),
+    child: Container(
+      color: AppColors.tabelHeaderColor,
+      padding: const EdgeInsets.all(6),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          color: AppColors.textColor,
         ),
-      );
+      ),
+    ),
+  );
 
   TableCell cell(String text) => TableCell(
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          alignment: Alignment.center,
-          color: const Color(0xFFF8F8F8),
-          child: Text(text, textAlign: TextAlign.center),
-        ),
-      );
+    child: Container(
+      padding: const EdgeInsets.all(8),
+      alignment: Alignment.center,
+      color: const Color(0xFFF8F8F8),
+      child: Text(text, textAlign: TextAlign.center),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -196,6 +203,7 @@ class _TabelPemesananAtkState extends State<TabelPemesananAtk> {
                                   header("Harga"),
                                   header("Link Pembelian"),
                                   header("Foto Barang"),
+                                  header("Aksi"),
                                 ],
                               ),
 
@@ -215,16 +223,21 @@ class _TabelPemesananAtkState extends State<TabelPemesananAtk> {
                                       child: Container(
                                         padding: const EdgeInsets.all(8),
                                         alignment: Alignment.center,
-                                        child: (listTanggal[i]["link_pembelian"] ?? "")
+                                        child:
+                                            (listTanggal[i]["link_pembelian"] ??
+                                                    "")
                                                 .toString()
                                                 .isNotEmpty
                                             ? InkWell(
                                                 onTap: () async {
-                                                  final url = Uri.parse(listTanggal[i]["link_pembelian"]);
+                                                  final url = Uri.parse(
+                                                    listTanggal[i]["link_pembelian"],
+                                                  );
                                                   if (await canLaunchUrl(url)) {
                                                     await launchUrl(
                                                       url,
-                                                      mode: LaunchMode.externalApplication,
+                                                      mode: LaunchMode
+                                                          .externalApplication,
                                                     );
                                                   }
                                                 },
@@ -232,7 +245,8 @@ class _TabelPemesananAtkState extends State<TabelPemesananAtk> {
                                                   listTanggal[i]["link_pembelian"],
                                                   style: const TextStyle(
                                                     color: Colors.blue,
-                                                    decoration: TextDecoration.underline,
+                                                    decoration: TextDecoration
+                                                        .underline,
                                                   ),
                                                 ),
                                               )
@@ -246,7 +260,8 @@ class _TabelPemesananAtkState extends State<TabelPemesananAtk> {
                                         padding: const EdgeInsets.all(8),
                                         alignment: Alignment.center,
                                         child: CachedNetworkImage(
-                                          imageUrl: listTanggal[i]["foto_url"] ?? "",
+                                          imageUrl:
+                                              listTanggal[i]["foto_url"] ?? "",
                                           width: 80,
                                           height: 80,
                                           fit: BoxFit.cover,
@@ -254,6 +269,602 @@ class _TabelPemesananAtkState extends State<TabelPemesananAtk> {
                                               const Text("Gagal muat"),
                                         ),
                                       ),
+                                    ),
+                                    TableCell(
+                                      child: Container(
+                                        alignment: Alignment.center,
+                                        padding: const EdgeInsets.all(8),
+                                        child: Row(
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.edit,
+                                                color: Colors.blue,
+                                              ),
+                                              onPressed: () async {
+                                                print("INDEX: $i");
+                                                print(
+                                                  "DATA DITEKAN: ${listTanggal[i]}",
+                                                );
+
+                                                final currentItem =
+                                                    listTanggal[i];
+                                                final id = currentItem["id"];
+
+                                                final namaPemesanController =
+                                                    TextEditingController(
+                                                      text:
+                                                          currentItem["nama_pemesan"] ??
+                                                          "",
+                                                    );
+                                                final namaBarangController =
+                                                    TextEditingController(
+                                                      text:
+                                                          currentItem["nama_barang"] ??
+                                                          "",
+                                                    );
+                                                final jumlahController =
+                                                    TextEditingController(
+                                                      text:
+                                                          (currentItem["jumlah"] ??
+                                                                  "")
+                                                              .toString(),
+                                                    );
+                                                String rawDate =
+                                                    (currentItem["tanggal_pemesanan"] ??
+                                                            "")
+                                                        .toString();
+
+                                                // Normalisasi nama bulan indonesia
+                                                rawDate = rawDate
+                                                    .replaceAll(
+                                                      "januari",
+                                                      "Januari",
+                                                    )
+                                                    .replaceAll(
+                                                      "februari",
+                                                      "Februari",
+                                                    )
+                                                    .replaceAll(
+                                                      "maret",
+                                                      "Maret",
+                                                    )
+                                                    .replaceAll(
+                                                      "april",
+                                                      "April",
+                                                    )
+                                                    .replaceAll("mei", "Mei")
+                                                    .replaceAll("juni", "Juni")
+                                                    .replaceAll("juli", "Juli")
+                                                    .replaceAll(
+                                                      "agustus",
+                                                      "Agustus",
+                                                    )
+                                                    .replaceAll(
+                                                      "september",
+                                                      "September",
+                                                    )
+                                                    .replaceAll(
+                                                      "oktober",
+                                                      "Oktober",
+                                                    )
+                                                    .replaceAll(
+                                                      "november",
+                                                      "November",
+                                                    )
+                                                    .replaceAll(
+                                                      "desember",
+                                                      "Desember",
+                                                    );
+
+                                                DateTime parsedDate;
+
+                                                // coba parse ISO first (yyyy-MM-dd)
+                                                final isoPart = rawDate
+                                                    .split(" ")
+                                                    .first;
+                                                if (RegExp(
+                                                  r'^\d{4}-\d{2}-\d{2}$',
+                                                ).hasMatch(isoPart)) {
+                                                  parsedDate = DateTime.parse(
+                                                    isoPart,
+                                                  );
+                                                } else if (rawDate.contains(
+                                                      "-",
+                                                    ) &&
+                                                    rawDate.split("-").length ==
+                                                        3) {
+                                                  // format dd-MM-yyyy
+                                                  final parts = rawDate.split(
+                                                    "-",
+                                                  );
+                                                  parsedDate = DateTime(
+                                                    int.parse(parts[2]),
+                                                    int.parse(parts[1]),
+                                                    int.parse(parts[0]),
+                                                  );
+                                                } else {
+                                                  parsedDate = DateFormat(
+                                                    "EEEE, dd MMMM yyyy",
+                                                    "id_ID",
+                                                  ).parseLoose(rawDate);
+                                                }
+
+                                                final tanggalController =
+                                                    TextEditingController(
+                                                      text: DateFormat(
+                                                        "yyyy-MM-dd",
+                                                      ).format(parsedDate),
+                                                    );
+
+                                                final satuanController =
+                                                    TextEditingController(
+                                                      text:
+                                                          currentItem["satuan"] ??
+                                                          "",
+                                                    );
+                                                final spesifikasiController =
+                                                    TextEditingController(
+                                                      text:
+                                                          currentItem["spesifikasi"] ??
+                                                          "",
+                                                    );
+                                                final hargaController =
+                                                    TextEditingController(
+                                                      text:
+                                                          (currentItem["harga"] ??
+                                                                  "")
+                                                              .toString(),
+                                                    );
+                                                final linkController =
+                                                    TextEditingController(
+                                                      text:
+                                                          currentItem["link_pembelian"] ??
+                                                          "",
+                                                    );
+
+                                                File?
+                                                selectedImage; // foto baru
+                                                final currentPhotoUrl =
+                                                    currentItem["foto"]; // string url foto dari database
+
+                                                await showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    return StatefulBuilder(
+                                                      builder: (context, setStateDialog) {
+                                                        return AlertDialog(
+                                                          shape: RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius.circular(
+                                                                  12,
+                                                                ),
+                                                          ),
+                                                          title: const Text(
+                                                            "Edit Data Pemesanan",
+                                                          ),
+                                                          content: SingleChildScrollView(
+                                                            child: Column(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                // preview foto
+                                                                selectedImage !=
+                                                                        null
+                                                                    ? Image.file(
+                                                                        selectedImage!,
+                                                                        height:
+                                                                            120,
+                                                                        fit: BoxFit
+                                                                            .cover,
+                                                                      )
+                                                                    : (currentPhotoUrl !=
+                                                                              null &&
+                                                                          currentPhotoUrl !=
+                                                                              "")
+                                                                    ? Image.network(
+                                                                        "${Config.baseUrl}/uploads/pemesanan/$currentPhotoUrl",
+                                                                        height:
+                                                                            120,
+                                                                        fit: BoxFit
+                                                                            .cover,
+                                                                      )
+                                                                    : Container(
+                                                                        height:
+                                                                            120,
+                                                                        color: Colors
+                                                                            .grey
+                                                                            .shade200,
+                                                                        alignment:
+                                                                            Alignment.center,
+                                                                        child: const Text(
+                                                                          "Tidak ada foto",
+                                                                        ),
+                                                                      ),
+
+                                                                const SizedBox(
+                                                                  height: 12,
+                                                                ),
+
+                                                                // button pilih foto
+                                                                ElevatedButton.icon(
+                                                                  onPressed: () async {
+                                                                    showModalBottomSheet(
+                                                                      context:
+                                                                          context,
+                                                                      shape: const RoundedRectangleBorder(
+                                                                        borderRadius: BorderRadius.vertical(
+                                                                          top: Radius.circular(
+                                                                            18,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      builder: (context) {
+                                                                        return Padding(
+                                                                          padding: const EdgeInsets.all(
+                                                                            16,
+                                                                          ),
+                                                                          child: Column(
+                                                                            mainAxisSize:
+                                                                                MainAxisSize.min,
+                                                                            children: [
+                                                                              const Text(
+                                                                                "Pilih Sumber Foto",
+                                                                                style: TextStyle(
+                                                                                  fontSize: 18,
+                                                                                  fontWeight: FontWeight.bold,
+                                                                                ),
+                                                                              ),
+                                                                              const SizedBox(
+                                                                                height: 16,
+                                                                              ),
+
+                                                                              // === PILIH DARI CAMERA ===
+                                                                              ListTile(
+                                                                                leading: const Icon(
+                                                                                  Icons.camera_alt,
+                                                                                ),
+                                                                                title: const Text(
+                                                                                  "Kamera",
+                                                                                ),
+                                                                                onTap: () async {
+                                                                                  final picker = ImagePicker();
+                                                                                  final pickedFile = await picker.pickImage(
+                                                                                    source: ImageSource.camera,
+                                                                                    imageQuality: 70,
+                                                                                  );
+
+                                                                                  if (pickedFile !=
+                                                                                      null) {
+                                                                                    setStateDialog(
+                                                                                      () {
+                                                                                        selectedImage = File(
+                                                                                          pickedFile.path,
+                                                                                        );
+                                                                                      },
+                                                                                    );
+                                                                                  }
+
+                                                                                  Navigator.pop(
+                                                                                    context,
+                                                                                  ); // tutup bottom sheet
+                                                                                },
+                                                                              ),
+
+                                                                              // === PILIH DARI GALERI ===
+                                                                              ListTile(
+                                                                                leading: const Icon(
+                                                                                  Icons.photo_library,
+                                                                                ),
+                                                                                title: const Text(
+                                                                                  "Galeri",
+                                                                                ),
+                                                                                onTap: () async {
+                                                                                  final picker = ImagePicker();
+                                                                                  final pickedFile = await picker.pickImage(
+                                                                                    source: ImageSource.gallery,
+                                                                                    imageQuality: 70,
+                                                                                  );
+
+                                                                                  if (pickedFile !=
+                                                                                      null) {
+                                                                                    setStateDialog(
+                                                                                      () {
+                                                                                        selectedImage = File(
+                                                                                          pickedFile.path,
+                                                                                        );
+                                                                                      },
+                                                                                    );
+                                                                                  }
+
+                                                                                  Navigator.pop(
+                                                                                    context,
+                                                                                  );
+                                                                                },
+                                                                              ),
+                                                                            ],
+                                                                          ),
+                                                                        );
+                                                                      },
+                                                                    );
+                                                                  },
+                                                                  icon: const Icon(
+                                                                    Icons.photo,
+                                                                  ),
+                                                                  label: const Text(
+                                                                    "Pilih Foto Baru",
+                                                                  ),
+                                                                ),
+
+                                                                const SizedBox(
+                                                                  height: 16,
+                                                                ),
+
+                                                                TextField(
+                                                                  controller:
+                                                                      namaPemesanController,
+                                                                  decoration: const InputDecoration(
+                                                                    labelText:
+                                                                        "Nama Pemesan",
+                                                                    border:
+                                                                        OutlineInputBorder(),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 12,
+                                                                ),
+                                                                TextField(
+                                                                  controller:
+                                                                      namaBarangController,
+                                                                  decoration: const InputDecoration(
+                                                                    labelText:
+                                                                        "Nama Barang",
+                                                                    border:
+                                                                        OutlineInputBorder(),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 12,
+                                                                ),
+                                                                TextField(
+                                                                  controller:
+                                                                      jumlahController,
+                                                                  keyboardType:
+                                                                      TextInputType
+                                                                          .number,
+                                                                  decoration: const InputDecoration(
+                                                                    labelText:
+                                                                        "Jumlah",
+                                                                    border:
+                                                                        OutlineInputBorder(),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 12,
+                                                                ),
+                                                                TextField(
+                                                                  controller:
+                                                                      tanggalController,
+                                                                  decoration: const InputDecoration(
+                                                                    labelText:
+                                                                        "Tanggal Pemesanan",
+                                                                    border:
+                                                                        OutlineInputBorder(),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 12,
+                                                                ),
+                                                                TextField(
+                                                                  controller:
+                                                                      satuanController,
+                                                                  decoration: const InputDecoration(
+                                                                    labelText:
+                                                                        "Satuan",
+                                                                    border:
+                                                                        OutlineInputBorder(),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 12,
+                                                                ),
+                                                                TextField(
+                                                                  controller:
+                                                                      spesifikasiController,
+                                                                  decoration: const InputDecoration(
+                                                                    labelText:
+                                                                        "Spesifikasi",
+                                                                    border:
+                                                                        OutlineInputBorder(),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 12,
+                                                                ),
+                                                                TextField(
+                                                                  controller:
+                                                                      hargaController,
+                                                                  keyboardType:
+                                                                      TextInputType
+                                                                          .number,
+                                                                  decoration: const InputDecoration(
+                                                                    labelText:
+                                                                        "Harga",
+                                                                    border:
+                                                                        OutlineInputBorder(),
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 12,
+                                                                ),
+                                                                TextField(
+                                                                  controller:
+                                                                      linkController,
+                                                                  decoration: const InputDecoration(
+                                                                    labelText:
+                                                                        "Link Pembelian",
+                                                                    border:
+                                                                        OutlineInputBorder(),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          actions: [
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.pop(
+                                                                    context,
+                                                                  ),
+                                                              child: const Text(
+                                                                "Batal",
+                                                              ),
+                                                            ),
+                                                            ElevatedButton(
+                                                              onPressed: () async {
+                                                                final sukses = await _editPemesananAtkController.editPemesanan(
+                                                                  id: id,
+                                                                  namaPemesan:
+                                                                      namaPemesanController
+                                                                          .text,
+                                                                  namaBarang:
+                                                                      namaBarangController
+                                                                          .text,
+                                                                  jumlah:
+                                                                      jumlahController
+                                                                          .text,
+                                                                  tanggalPemesanan:
+                                                                      tanggalController
+                                                                          .text,
+                                                                  satuan:
+                                                                      satuanController
+                                                                          .text,
+                                                                  spesifikasi:
+                                                                      spesifikasiController
+                                                                          .text,
+                                                                  harga:
+                                                                      hargaController
+                                                                          .text,
+                                                                  linkPembelian:
+                                                                      linkController
+                                                                          .text,
+                                                                  fotoBaru:
+                                                                      selectedImage, // null = tidak ganti foto
+                                                                );
+
+                                                                if (!context
+                                                                    .mounted)
+                                                                  return;
+
+                                                                if (sukses) {
+                                                                  Navigator.pop(
+                                                                    context,
+                                                                  );
+                                                                  setState(
+                                                                    () {},
+                                                                  );
+                                                                  ScaffoldMessenger.of(
+                                                                    context,
+                                                                  ).showSnackBar(
+                                                                    const SnackBar(
+                                                                      content: Text(
+                                                                        "Data berhasil diperbarui 🚀",
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                } else {
+                                                                  ScaffoldMessenger.of(
+                                                                    context,
+                                                                  ).showSnackBar(
+                                                                    const SnackBar(
+                                                                      content: Text(
+                                                                        "Gagal update 😥",
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                }
+                                                              },
+                                                              child: const Text(
+                                                                "Simpan",
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ), IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () async {
+                                            final id = listTanggal[i]["id"];
+
+                                            final confirm = await showDialog(
+                                              context: context,
+                                              builder: (context) => AlertDialog(
+                                                title: const Text("Hapus Data"),
+                                                content: Text(
+                                                  "Yakin ingin menghapus data dengan ID $id?",
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                          context,
+                                                          false,
+                                                        ),
+                                                    child: const Text("Batal"),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                          context,
+                                                          true,
+                                                        ),
+                                                    child: const Text("Hapus"),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+
+                                            if (confirm == true) {
+                                              final success =
+                                                  await _hapusController
+                                                      .hapusBarang(id);
+
+                                              if (success) {
+                                                setState(() {}); // reload tabel
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      "Berhasil menghapus",
+                                                    ),
+                                                  ),
+                                                );
+                                              } else {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      "Gagal menghapus",
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                      ),
+                                    )
                                     ),
                                   ],
                                 ),
@@ -280,9 +891,13 @@ class _TabelPemesananAtkState extends State<TabelPemesananAtk> {
                       ),
                       onPressed: () async {
                         final data = await _controller.getPemesanan();
-                        await _controller.generatePdfForMonth(data);
+
+                        await exportBarangToExcel(
+                          data,
+                        ); // <-- Excel (no lantai)
                       },
-                      icon: const Icon(Icons.picture_as_pdf),
+
+                      icon: const Icon(Icons.table_view),
                       label: Text("Print Laporan Bulan $bulan"),
                     ),
                   ),

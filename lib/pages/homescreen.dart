@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:gudang_fk/utility/colors.dart';
-import 'package:gudang_fk/pages/gudang/halamanutama.dart ';
+import 'package:gudang_fk/pages/gudang/halamanutama.dart';
 import 'package:gudang_fk/pages/atk/beranda_atk.dart';
 
-class Homescreen extends StatefulWidget {
-  const Homescreen({super.key});
+class Homescreen extends StatefulWidget { // simpan role
+
+  const Homescreen({
+    super.key,
+  });
 
   @override
   State<Homescreen> createState() => _HomescreenState();
@@ -12,7 +15,7 @@ class Homescreen extends StatefulWidget {
 
 class _HomescreenState extends State<Homescreen> {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { // buat cek
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       body: Padding(
@@ -28,68 +31,63 @@ class _HomescreenState extends State<Homescreen> {
                   color: AppColors.titleTextColor,
                   fontSize: 45,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'poppins',
                 ),
               ),
             ),
+
             const SizedBox(height: 50),
+
             ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MenuGudangScreen()),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.backgroundColor,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 80,
-                  vertical: 25,
-                ),
+                    horizontal: 80, vertical: 25),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(40),
                 ),
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MenuGudangScreen(),
-                  ),
-                );
-                // Aksi saat tombol ditekan
-              },
               child: const Text(
                 "Gudang FK",
                 style: TextStyle(
-                  color: AppColors.buttonColor,
-                  fontSize: 27,
-                  fontWeight: FontWeight.bold,
-                ),
+                    color: AppColors.buttonColor,
+                    fontSize: 27,
+                    fontWeight: FontWeight.bold),
               ),
             ),
+
             const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.backgroundColor,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 70,
-                  vertical: 25,
+
+            // === Hanya munculkan jika role admin ===
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const BerandaAtk()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.backgroundColor,
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 70, vertical: 25),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(40),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(40),
+                child: const Text(
+                  "BHP dan ATK",
+                  style: TextStyle(
+                    color: AppColors.buttonColor,
+                    fontSize: 27,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const BerandaAtk()),
-                );
-                // Aksi saat tombol ditekan
-              },
-              child: const Text(
-                "BHP dan ATK",
-                style: TextStyle(
-                  color: AppColors.buttonColor,
-                  fontSize: 27,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
           ],
         ),
       ),

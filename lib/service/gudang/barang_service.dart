@@ -31,10 +31,11 @@ class BarangService {
         );
       }
 
-      var response = await request.send();
-      final respStr = await response.stream.bytesToString();
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+
       print("⬅️ Status: ${response.statusCode}");
-      print("⬅️ Body: $respStr");
+      print("⬅️ Body: ${response.body}");
 
       return response.statusCode == 201;
     } catch (e) {
@@ -58,26 +59,25 @@ class BarangService {
     }
   }
 
-// Future<List<dynamic>> getPemesananPending({String? kategori}) async {
-//   final url = Uri.parse(
-//     kategori != null && kategori.isNotEmpty
-//         ? '${Config.baseUrl}/api/pemesanan/pending?kategori=$kategori'
-//         : '${Config.baseUrl}/api/pemesanan/pending',
-//   );
+  // Future<List<dynamic>> getPemesananPending({String? kategori}) async {
+  //   final url = Uri.parse(
+  //     kategori != null && kategori.isNotEmpty
+  //         ? '${Config.baseUrl}/api/pemesanan/pending?kategori=$kategori'
+  //         : '${Config.baseUrl}/api/pemesanan/pending',
+  //   );
 
-//   try {
-//     final response = await http.get(url);
-//     if (response.statusCode == 200) {
-//       return jsonDecode(response.body);
-//     } else {
-//       throw Exception("Gagal ambil data pemesanan pending");
-//     }
-//   } catch (e) {
-//     print("❌ Error ambil pemesanan: $e");
-//     return [];
-//   }
-// }
-
+  //   try {
+  //     final response = await http.get(url);
+  //     if (response.statusCode == 200) {
+  //       return jsonDecode(response.body);
+  //     } else {
+  //       throw Exception("Gagal ambil data pemesanan pending");
+  //     }
+  //   } catch (e) {
+  //     print("❌ Error ambil pemesanan: $e");
+  //     return [];
+  //   }
+  // }
 
   Future<bool> updateStatusPemesanan(int idPemesanan, String statusBaru) async {
     final url = Uri.parse('${Config.baseUrl}/api/pemesanan/$idPemesanan');

@@ -4,8 +4,11 @@ import 'package:gudang_fk/controller/atk/pemesanan_atk_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'tabel/tabel_pemesanan.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../utility/switch_admin.dart';
 
 class PemesananBarangATK extends StatefulWidget {
   const PemesananBarangATK({super.key});
@@ -18,7 +21,7 @@ class _PemesananBarangATKState extends State<PemesananBarangATK> {
   final ImagePicker _picker = ImagePicker();
   final _controller = PemesananAtkController();
   File? _pickedimage;
-
+  String? userRole;
   final _NamaPemesanController = TextEditingController();
   final _tglPemesanan = TextEditingController();
   final _JumlahController = TextEditingController();
@@ -28,7 +31,72 @@ class _PemesananBarangATKState extends State<PemesananBarangATK> {
   final _HargaController = TextEditingController();
   final _LInkPembelianController = TextEditingController();
   final _kategori = TextEditingController(text: "ATK");
+  bool admin = false;
 
+@override
+  void initState() {
+    super.initState();
+    _loadRole();
+    _loadAdminMode(); // ← tambahkan ini
+  }
+
+  void _showBlockedOverlay() {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
+      });
+      return Stack(
+        children: [
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+            child: Container(color: Colors.black.withValues(alpha: 0.3)),
+          ),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                "Pemesanan sedang ditutup oleh admin",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          )
+        ],
+      );
+    },
+  );
+}
+ void _loadAdminMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool saved = prefs.getBool("admin") ?? false;
+
+    setState(() {
+      admin = saved;
+    });
+  }
+
+  void _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? role = prefs.getString("user_role");
+
+    setState(() {
+      userRole = role;
+    });
+
+    print("ROLE: $role");
+  }
   Future<void> _pickedImage(ImageSource source) async {
     try {
       final XFile? picked = await _picker.pickImage(
@@ -85,6 +153,21 @@ class _PemesananBarangATKState extends State<PemesananBarangATK> {
   }
 
   void _kirimData() async {
+    
+    print('🔍 Mengecek status pemesanan...');
+
+  final isOpen = await _controller.cekStatusPemesanan(fresh: true);
+
+  print('📌 Status dari backend: ${isOpen ? "TERBUKA ✅" : "TERTUTUP ❌"}');
+
+  if (!isOpen) {
+    print('⚠️ Pemesanan ditutup → overlay ditampilkan');
+    _showBlockedOverlay();
+    return;
+  } else {
+    print('✅ Pemesanan terbuka → lanjut kirim data');
+  }
+
     if (_pickedimage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Harap pilih gambar bukti pemesanan')),
@@ -261,7 +344,29 @@ class _PemesananBarangATKState extends State<PemesananBarangATK> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20)
+              const SizedBox(height: 20),
+              
+              Align(
+                alignment: Alignment.centerRight,
+                child: AdminButton(
+                  isAdmin: userRole == "admin",
+                  value: admin,
+                  onChanged: (value) async {
+                    final prefs = await SharedPreferences.getInstance();
+
+                    // Simpan ke lokal
+                    setState(() {
+                      admin = value;
+                    });
+                    await prefs.setBool("admin", value);
+
+                    // ⬇️ Kirim ke backend
+                    await _controller.updateStatusPemesanan(value);
+                  },
+                ),
+              ),
+
+              SizedBox(height: 10),
             ],
           ),
         ),

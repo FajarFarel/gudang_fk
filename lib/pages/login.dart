@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gudang_fk/pages/homescreen.dart';
 import '../service/gudang/auth_service.dart';
 import 'package:gudang_fk/utility/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,37 +37,49 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    String? result = await _authService.login(username, password);
+    // Provide a default role (adjust as needed or replace with UI selection)
+    final String role = 'user';
+
+    final result = await _authService.login(username, password);
 
     setState(() {
       _isLoading = false;
     });
 
-    if (result == null) {
-      // sukses login
+    if (result["success"] == true) {
+      final userData = result["data"];
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString("user_role", userData["role"]);
+      
+      
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Login Berhasil 🎉"),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 1),
+        const SnackBar(
+          content: Text("Login Berhasil 🎉"),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 1),
+        ),
+      );
+
+      Future.delayed(const Duration(seconds: 1), () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Homescreen(
+              // ← ini benar
+            ),
           ),
-        )
-        ..closed.then((_) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => Homescreen()),
-          );
-        });
+        );
+      });
     } else {
-      // gagal login, tampilkan error spesifik dari backend
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(result), // bisa "Username salah" atau "Password salah"
+          content: Text(result["message"]),
           backgroundColor: Colors.redAccent,
         ),
       );
     }
-  } // <-- Add this closing brace for _handleLogin
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +148,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 30),
 
-            // Tombol Login
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFD3D3D3),

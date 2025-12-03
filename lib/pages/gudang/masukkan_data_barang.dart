@@ -26,6 +26,7 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
   final _spesifikasi = TextEditingController();
   final _namaBarang = TextEditingController();
   final _jumlah = TextEditingController();
+  final _satuan = TextEditingController();
   final _namaRuangan = TextEditingController();
   final _lantai = TextEditingController();
   final _keadaanGabung = TextEditingController();
@@ -134,7 +135,8 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
       'tanggal_barang_datang': formattedDate,
       'spesifikasi': _spesifikasi.text,
       'nama_barang': _namaBarang.text,
-      'jumlah_satuan': _jumlah.text,
+      'jumlah': _jumlah.text,
+      'satuan': _satuan.text,
       'nama_ruangan': _namaRuangan.text,
       'lantai': _lantai.text,
       'B': b.toString(),
@@ -161,6 +163,7 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
         _spesifikasi.clear();
         _namaBarang.clear();
         _jumlah.clear();
+        _satuan.clear();
         _namaRuangan.clear();
         _lantai.clear();
         _keadaanGabung.clear();
@@ -225,7 +228,9 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
                     const SizedBox(height: 15),
                     _buildTextField("Nama Barang:", _namaBarang),
                     const SizedBox(height: 15),
-                    _buildTextField("Jumlah / Satuan:", _jumlah),
+                    _buildTextField("Jumlah", _jumlah),
+                    const SizedBox(height: 15),
+                    _buildTextField("Satuan", _satuan),
                     const SizedBox(height: 15),
                     _buildTextField("Nama Ruangan:", _namaRuangan),
                     const SizedBox(height: 15),
@@ -238,30 +243,6 @@ class _InputBarangScreenState extends State<InputBarangScreen> {
                     const SizedBox(height: 15),
                     _buildTextField("No Barcode:", _barcode),
                     const SizedBox(height: 15),
-                    // _buildDropdownField<int>(
-                    //   hint: "Pilih Pemesanan",
-                    //   value: _selectedPemesananId,
-                    //   items: _pemesananPending
-                    //       .where(
-                    //         (pem) => pem['status'] != 'complete',
-                    //       ) // filter yang sudah komplit
-                    //       .map((pem) {
-                    //         return DropdownMenuItem<int>(
-                    //           value: pem['id'],
-                    //           child: Text(
-                    //             "${pem['nama_barang']} (${pem['nama_pemesan']})",
-                    //           ),
-                    //         );
-                    //       })
-                    //       .toList(),
-                    //   onChanged: (val) {
-                    //     setState(() {
-                    //       _selectedPemesananId = val;
-                    //     });
-                    //   },
-                    // ),
-
-                    // const SizedBox(height: 15),
                     _buildTextFieldDisabled(_kategori.text, _kategori),
                     const SizedBox(height: 20),
 

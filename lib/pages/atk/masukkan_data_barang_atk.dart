@@ -24,6 +24,7 @@ class _MasukkanDataBarangATKState extends State<MasukkanDataBarangATK> {
   final _namaBarang = TextEditingController();
   final _spesifikasi = TextEditingController();
   final _jumlah = TextEditingController();
+  final _satuan = TextEditingController();
   final _keadaanGabung = TextEditingController();
   final _barcode = TextEditingController();
   final _kategori = TextEditingController(text: "ATK");
@@ -130,7 +131,8 @@ class _MasukkanDataBarangATKState extends State<MasukkanDataBarangATK> {
       'tanggal_barang_datang': formattedDate,
       'spesifikasi': _spesifikasi.text,
       'nama_barang': _namaBarang.text,
-      'jumlah_satuan': _jumlah.text,
+      'jumlah': _jumlah.text,
+      'satuan': _satuan.text,
       'B': b.toString(),
       'RR': rr.toString(),
       'RB': rb.toString(),
@@ -154,6 +156,7 @@ class _MasukkanDataBarangATKState extends State<MasukkanDataBarangATK> {
         _spesifikasi.clear();
         _namaBarang.clear();
         _jumlah.clear();
+        _satuan.clear();
         _keadaanGabung.clear();
         _selectedPemesananId = null;
         _barcode.clear();
@@ -214,7 +217,9 @@ class _MasukkanDataBarangATKState extends State<MasukkanDataBarangATK> {
                     const SizedBox(height: 15),
                     _buildTextField("Nama Barang:", _namaBarang),
                     const SizedBox(height: 15),
-                    _buildTextField("Jumlah / Satuan:", _jumlah),
+                    _buildTextField("Jumlah:", _jumlah),
+                    const SizedBox(height: 15),
+                    _buildTextField("Satuan:", _satuan),
                     const SizedBox(height: 15),
                     _buildTextField(
                       "Keadaan Barang (contoh: B:5 RR:0 RB:0)",

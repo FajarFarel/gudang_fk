@@ -4,6 +4,7 @@ import 'package:gudang_fk/pages/atk/data_barang_keluar.dart';
 import 'package:gudang_fk/pages/atk/masukkan_data_barang_atk.dart';
 import 'package:gudang_fk/pages/atk/pemesanan_barang.dart';
 import 'package:gudang_fk/pages/atk/cari_atk_berdasarkan_no_bmn.dart';
+import 'package:gudang_fk/pages/atk/tabel/tabel_data_atk.dart';
 
 class BerandaAtk extends StatelessWidget {
   const BerandaAtk({super.key});
@@ -48,6 +49,17 @@ class BerandaAtk extends StatelessWidget {
                     ),
                   );
                   // Navigasi ke halaman input data
+                }),
+                const SizedBox(height: 20),
+
+                _buildMenuButton('Tabel ATK', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const TabelStockAtk(),
+                    ),
+                  );
+                  // Navigasi ke halaman tabel stock per lantai
                 }),
                 const SizedBox(height: 20),
 

@@ -228,4 +228,6 @@ Future<pw.Widget> buildFotoWidget(String? url) async {
 
     return widgets;
   }
+
+  Future hapusBarang(id) async {}
 }

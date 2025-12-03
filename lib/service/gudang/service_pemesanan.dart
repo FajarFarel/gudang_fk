@@ -57,4 +57,35 @@ class ServicePemesanan {
       return [];
     }
   }
+
+  Future<bool> updateStatusPemesanan(bool status) async {
+    try {
+      final url = Uri.parse("${Config.baseUrl}/api/pemesanan/status/1");
+
+      final response = await http.put(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"is_open": status}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print("ERR: $e");
+      return false;
+    }
+  }
+
+  Future<bool> cekStatusPemesanan() async {
+    try {
+      final url = Uri.parse("${Config.baseUrl}/api/lihat/pemesanan/status/1");
+
+      final response = await http.get(url);
+      final json = jsonDecode(response.body);
+
+      return json["is_open"] == true;
+    } catch (e) {
+      print("ERR: $e");
+      return false; // default: dianggap open biar ga ngeblok halaman
+    }
+  }
 }

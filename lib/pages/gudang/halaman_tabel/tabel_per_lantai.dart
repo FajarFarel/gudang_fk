@@ -5,6 +5,7 @@ import 'package:gudang_fk/utility/colors.dart';
 import 'package:gudang_fk/controller/gudang/isi_tabel_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:gudang_fk/controller/gudang/hapus_data_gudang_controller.dart';
 
 class TabelStockBarang extends StatefulWidget {
   final int lantai;
@@ -17,6 +18,9 @@ class TabelStockBarang extends StatefulWidget {
 
 class _TabelStockBarangState extends State<TabelStockBarang> {
   final IsiTabelController _controller = IsiTabelController();
+  final HapusDataGudangController _hapusController = HapusDataGudangController();
+  final EditDataGudangController _editDataGudangController =
+      EditDataGudangController();
 
   @override
   void initState() {
@@ -167,11 +171,13 @@ class _TabelStockBarangState extends State<TabelStockBarang> {
                       headerCell("Tanggal Barang Masuk"),
                       headerCell("Nama Barang"),
                       headerCell("Lantai"),
-                      headerCell("Jumlah Barang"),
+                      headerCell("Jumlah"),
+                      headerCell("Satuan"),
                       headerCell("Foto"),
                       headerCell("Kondisi Barang"),
                       headerCell("Jumlah Kondisi"),
                       headerCell("Barcode"),
+                      headerCell("Aksi"),
                     ],
                   ),
 
@@ -186,7 +192,8 @@ class _TabelStockBarangState extends State<TabelStockBarang> {
                         ),
                         cell(data[i]["nama_barang"]),
                         cell(data[i]["lantai"].toString()),
-                        cell(data[i]["jumlah_satuan"].toString()),
+                        cell(data[i]["jumlah"].toString()),
+                        cell(data[i]["satuan"].toString()),
                         TableCell(
                           child: Container(
                             color: const Color(0xFFF8F8F8),
@@ -257,7 +264,157 @@ class _TabelStockBarangState extends State<TabelStockBarang> {
                             ),
                           ),
                         ),
+                        TableCell(
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.all(8),
+                            child: Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.edit, color: Colors.blue),
+                                  onPressed: () async {
+                                    final id = data[i]["id"];
+                                
+                                  final bController = TextEditingController(text: data[i]["B"].toString());
+                                  final rrController = TextEditingController(text: data[i]["RR"].toString());
+                                  final rbController = TextEditingController(text: data[i]["RB"].toString());
+                              
+                                  await showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        title: const Text("Edit Data Gudang"),
+                                        content: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            TextField(
+                                              controller: bController,
+                                              keyboardType: TextInputType.number,
+                                              decoration: const InputDecoration(
+                                                labelText: "B",
+                                                border: OutlineInputBorder(),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            TextField(
+                                              controller: rrController,
+                                              keyboardType: TextInputType.number,
+                                              decoration: const InputDecoration(
+                                                labelText: "RR",
+                                                border: OutlineInputBorder(),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 12),
+                                            TextField(
+                                              controller: rbController,
+                                              keyboardType: TextInputType.number,
+                                              decoration: const InputDecoration(
+                                                labelText: "RB",
+                                                border: OutlineInputBorder(),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(context),
+                                            child: const Text("Batal"),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () async {
+                                              final sukses = await _editDataGudangController.editGudang(
+                                                id: id,
+                                                b: bController.text,
+                                                rr: rrController.text,
+                                                rb: rbController.text,
+                                              );
+                              
+                                              if (!context.mounted) return;
+                              
+                                              if (sukses) {
+                                                Navigator.pop(context);
+                                                setState(() {});
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text("Data berhasil diperbarui 😎"),
+                                                  ),
+                                                );
+                                              } else {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text("Gagal memperbarui 😥"),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                            child: const Text("Simpan"),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            
+
+                            
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                final id = data[i]["id"];
+
+                                final confirm = await showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text("Hapus Data"),
+                                    content: Text(
+                                      "Yakin ingin menghapus data dengan ID $id?",
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text("Batal"),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: const Text("Hapus"),
+                                      ),
+                                    ],
+                                  ),
+                                );
+
+                                if (confirm == true) {
+                                  final success = await _hapusController
+                                      .hapusBarang(id);
+
+                                  if (success) {
+                                    setState(() {}); // reload tabel
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Berhasil menghapus"),
+                                      ),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Gagal menghapus"),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                          ],  
+                          ),
+                        )
+                        ),
                       ],
+                    
                     ),
                 ],
               ),
