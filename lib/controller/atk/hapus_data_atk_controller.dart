@@ -38,6 +38,15 @@ class HapusDataAtkController {
 class EditDataAtkController {
   Future<bool> editAtk({
     required int id,
+    required String noBMN,
+    required String namabarang,
+    required String tanggalbarangdatang,
+    required String jumlah,
+    required String satuan,
+    required String spesifikasi,
+    required String namaruangan,
+    required String kategori,
+    File? fotoatkBaru,
     required String b,
     required String rr,
     required String rb,
@@ -45,6 +54,15 @@ class EditDataAtkController {
     try {
       final result = await EditAtkService.editAtk(
         id: id,
+        noBMN: noBMN,
+        namabarang: namabarang,
+        tanggalbarangdatang: tanggalbarangdatang,
+        jumlah: jumlah,
+        satuan: satuan,
+        spesifikasi: spesifikasi,
+        namaruangan: namaruangan,
+        kategori: kategori,
+        fotoatkBaru: fotoatkBaru,
         b: b,
         rr: rr,
         rb: rb,

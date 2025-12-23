@@ -6,6 +6,7 @@ import 'package:gudang_fk/controller/atk/tabel_atk_controller.dart';
 import 'package:gudang_fk/controller/atk/hapus_data_atk_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'dart:io';
 
 class TabelStockAtk extends StatefulWidget {
   const TabelStockAtk({super.key});
@@ -18,8 +19,7 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
   final IsiTabelAtkController _controller = IsiTabelAtkController();
   final HapusDataAtkController _hapusDataAtkController =
       HapusDataAtkController();
-    final EditDataAtkController _editDataAtkController =
-        EditDataAtkController();
+  final EditDataAtkController _editDataAtkController = EditDataAtkController();
 
   @override
   void initState() {
@@ -270,94 +270,244 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
                               children: [
                                 // TOMBOL EDIT
                                 IconButton(
-  icon: const Icon(Icons.edit, color: Colors.blue),
-  onPressed: () async {
-    final id = data[i]["id"];
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.blue,
+                                  ),
+                                  onPressed: () async {
+                                    final id = data[i]["id"];
+                                    final namabarang = TextEditingController(
+                                      text: data[i]["nama_barang"].toString(),
+                                    );
+                                    final noBMN = TextEditingController(
+                                      text: data[i]["no_bmn"].toString(),
+                                    );
+                                    final tanggalbarangdatang =
+                                        TextEditingController(
+                                          text: data[i]["tanggal_barang_datang"]
+                                              .toString(),
+                                        );
+                                    final jumlah = TextEditingController(
+                                      text: data[i]["jumlah"].toString(),
+                                    );
+                                    final satuan = TextEditingController(
+                                      text: data[i]["satuan"].toString(),
+                                    );
+                                    final spesifikasi = TextEditingController(
+                                      text: data[i]["spesifikasi"].toString(),
+                                    );
+                                    final namaruangan = TextEditingController(
+                                      text: data[i]["nama_ruangan"].toString(),
+                                    );
+                                    final kategori = TextEditingController(
+                                      text: data[i]["kategori"].toString(),
+                                    );
+                                    File? selectedFotoAtk;
+                                    final fotoatkLama = data[i]["foto_barang"];
+                                    final bController = TextEditingController(
+                                      text: data[i]["B"].toString(),
+                                    );
+                                    final rrController = TextEditingController(
+                                      text: data[i]["RR"].toString(),
+                                    );
+                                    final rbController = TextEditingController(
+                                      text: data[i]["RB"].toString(),
+                                    );
 
-    final bController = TextEditingController(text: data[i]["B"].toString());
-    final rrController = TextEditingController(text: data[i]["RR"].toString());
-    final rbController = TextEditingController(text: data[i]["RB"].toString());
+                                    await showDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          title: const Text("Edit Data Gudang"),
+                                          content: SingleChildScrollView(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                TextField(
+                                                  controller: noBMN,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: "No BMN",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                TextField(
+                                                  controller: namabarang,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: "Nama Barang",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                TextField(
+                                                  controller:
+                                                      tanggalbarangdatang,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText:
+                                                            "Tanggal Barang Datang",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                TextField(
+                                                  controller: jumlah,
+                                                  keyboardType:
+                                                      TextInputType.number,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: "Jumlah",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                TextField(
+                                                  controller: satuan,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: "Satuan",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                TextField(
+                                                  controller: spesifikasi, 
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: "Spesifikasi",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                TextField(
+                                                  controller: kategori,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: "Kategori",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                TextField(
+                                                  controller: bController,
+                                                  keyboardType:
+                                                      TextInputType.number,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: "B",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                TextField(
+                                                  controller: rrController,
+                                                  keyboardType:
+                                                      TextInputType.number,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: "RR",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 12),
+                                                TextField(
+                                                  controller: rbController,
+                                                  keyboardType:
+                                                      TextInputType.number,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        labelText: "RB",
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: const Text("Batal"),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () async {
+                                                final sukses =
+                                                    await _editDataAtkController
+                                                        .editAtk(
+                                                          id: id,
+                                                          noBMN:
+                                                              noBMN.text,
+                                                          namabarang:
+                                                              namabarang.text,
+                                                          tanggalbarangdatang:
+                                                              tanggalbarangdatang
+                                                                  .text,
+                                                          jumlah: jumlah.text,
+                                                          satuan: satuan.text,
+                                                          spesifikasi:
+                                                              spesifikasi.text,
+                                                          namaruangan:
+                                                              namaruangan.text,
+                                                          kategori:
+                                                              kategori.text,
+                                                          fotoatkBaru:
+                                                              selectedFotoAtk,
+                                                          b: bController.text,
+                                                          rr: rrController.text,
+                                                          rb: rbController.text,
+                                                        );
 
-    await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          title: const Text("Edit Data Gudang"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: bController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "B",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: rrController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "RR",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: rbController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: "RB",
-                  border: OutlineInputBorder(),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Batal"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final sukses = await _editDataAtkController.editAtk(
-                  id: id,
-                  b: bController.text,
-                  rr: rrController.text,
-                  rb: rbController.text,
-                );
+                                                if (!context.mounted) return;
 
-                if (!context.mounted) return;
-
-                if (sukses) {
-                  Navigator.pop(context);
-                  setState(() {});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Data berhasil diperbarui 😎"),
-                    ),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Gagal memperbarui 😥"),
-                    ),
-                  );
-                }
-              },
-              child: const Text("Simpan"),
-            ),
-          ],
-        );
-      },
-    );
-  },
-),
-
+                                                if (sukses) {
+                                                  Navigator.pop(context);
+                                                  setState(() {});
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        "Data berhasil diperbarui 😎",
+                                                      ),
+                                                    ),
+                                                  );
+                                                } else {
+                                                  ScaffoldMessenger.of(
+                                                    context,
+                                                  ).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                        "Gagal memperbarui 😥",
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                              child: const Text("Simpan"),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
 
                                 // TOMBOL HAPUS
                                 IconButton(

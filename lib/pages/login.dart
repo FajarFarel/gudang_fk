@@ -43,6 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() {
       _isLoading = false;
+      
     });
 
     if (result["success"] == true) {

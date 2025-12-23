@@ -548,10 +548,9 @@ def cari_barang_berdasarkan_lantai():
     cursor = conn.cursor(pymysql.cursors.DictCursor)
 
     query = """
-        SELECT id, no_bmn, nama_barang, tanggal_barang_datang, lantai, jumlah, satuan,
-               B, RR, RB, foto_barang, no_barcode
+        SELECT *
         FROM barang_masuk
-        WHERE lantai = %s
+        WHERE nama_ruangan = %s
     """
     cursor.execute(query, (lantai,))
     result = cursor.fetchone()
@@ -569,23 +568,7 @@ def cari_barang_berdasarkan_lantai():
 @api_bp.route('/pemesanan', methods=['POST'])
 def tambah_pemesanan():
     try:
-        # ================================
-        # 1. CEK STATUS SWITCH
-        # ================================
         conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("SELECT value FROM settings WHERE name = 'input_status'")
-        status = cursor.fetchone()
-
-        if status and status['value'] == 0:
-            conn.close()
-            return jsonify({
-                "error": "Input sedang dimatikan oleh admin!"
-            }), 403
-
-        # ================================
-        # 2. LANJUTKAN PROSES NORMAL
-        # ================================
         data = request.form
         tanggal_pemesanan = datetime.now()
         tanggal_next_year = tanggal_pemesanan + relativedelta(years=1)

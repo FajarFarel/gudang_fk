@@ -46,66 +46,68 @@ class TabelDataBarangPerlantai extends StatelessWidget {
 
             final lantaiList = snapshot.data!;
 
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  "Mau ke Lantai\nBerapa?",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.titleTextColor,
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Mau ke Lantai\nBerapa?",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.titleTextColor,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 30),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardColor,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.black, width: 4),
-                  ),
-                  child: Column(
-                    children: lantaiList.map((lantai) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[300],
-                            foregroundColor: Colors.brown[700],
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 14,
-                              horizontal: 100,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    TabelStockBarang(lantai: lantai),
+                  const SizedBox(height: 30),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardColor,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.black, width: 4),
+                    ),
+                    child: Column(
+                      children: lantaiList.map((lantai) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[300],
+                              foregroundColor: Colors.brown[700],
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 14,
+                                horizontal: 100,
                               ),
-                            );
-                          },
-                          child: Text(
-                            "Lantai $lantai",
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      TabelStockBarang(lantai: lantai),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              "Lantai $lantai",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
