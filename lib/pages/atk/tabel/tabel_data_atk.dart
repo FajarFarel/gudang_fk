@@ -7,6 +7,7 @@ import 'package:gudang_fk/controller/atk/hapus_data_atk_controller.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:io';
+// import 'package:image_picker/image_picker.dart';
 
 class TabelStockAtk extends StatefulWidget {
   const TabelStockAtk({super.key});
@@ -20,6 +21,65 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
   final HapusDataAtkController _hapusDataAtkController =
       HapusDataAtkController();
   final EditDataAtkController _editDataAtkController = EditDataAtkController();
+  // final ImagePicker _picker = ImagePicker();
+  // File? _selectedImage;
+
+  // Future<void> _pickImage(ImageSource source) async {
+  //   try {
+  //     final XFile? picked = await _picker.pickImage(
+  //       source: source,
+  //       maxWidth: 1200,
+  //       imageQuality: 80,
+  //     );
+  //     if (picked != null) {
+  //       setState(() {
+  //         _selectedImage = File(picked.path);
+  //       });
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text('Gagal ambil gambar $e')));
+  //   }
+  // }
+
+  // void _showImageOptions() {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     shape: const RoundedRectangleBorder(
+  //       borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  //     ),
+  //     builder: (context) => SafeArea(
+  //       child: Wrap(
+  //         children: [
+  //           ListTile(
+  //             leading: const Icon(Icons.camera_alt),
+  //             title: const Text('Ambil Foto'),
+  //             onTap: () {
+  //               Navigator.of(context).pop();
+  //               _pickImage(ImageSource.camera);
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.photo_library),
+  //             title: const Text('Pilih dari Galeri'),
+  //             onTap: () {
+  //               Navigator.of(context).pop();
+  //               _pickImage(ImageSource.gallery);
+  //             },
+  //           ),
+  //           ListTile(
+  //             leading: const Icon(Icons.close),
+  //             title: const Text('Batal'),
+  //             onTap: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   void initState() {
@@ -57,6 +117,24 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
       return DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(parsedDate);
     } catch (_) {
       return tgl;
+    }
+  }
+
+  String formatTanggalToIsoForEdit(String tgl) {
+    if (tgl.isEmpty) return "";
+
+    try {
+      // Reuse parser dari fungsi lama
+      String cleanDate = tgl.replaceAll("GMT", "").trim();
+
+      DateTime parsedDate = DateFormat(
+        'EEEE, dd MMMM yyyy',
+        'id_ID',
+      ).parseLoose(cleanDate);
+
+      return DateFormat('yyyy-MM-dd').format(parsedDate);
+    } catch (_) {
+      return tgl; // fallback
     }
   }
 
@@ -284,8 +362,10 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
                                     );
                                     final tanggalbarangdatang =
                                         TextEditingController(
-                                          text: data[i]["tanggal_barang_datang"]
-                                              .toString(),
+                                          text: formatTanggalToIsoForEdit(
+                                            data[i]["tanggal_barang_datang"]
+                                                .toString(),
+                                          ),
                                         );
                                     final jumlah = TextEditingController(
                                       text: data[i]["jumlah"].toString(),
@@ -294,16 +374,15 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
                                       text: data[i]["satuan"].toString(),
                                     );
                                     final spesifikasi = TextEditingController(
-                                      text: data[i]["spesifikasi"].toString(),
+                                      text: formatTanggal(
+                                        data[i]["spesifikasi"].toString(),
+                                      ),
                                     );
                                     final namaruangan = TextEditingController(
                                       text: data[i]["nama_ruangan"].toString(),
                                     );
-                                    final kategori = TextEditingController(
-                                      text: data[i]["kategori"].toString(),
-                                    );
-                                    File? selectedFotoAtk;
-                                    final fotoatkLama = data[i]["foto_barang"];
+                                    // File? selectedFotoAtk;
+                                    // final fotoatkLama = data[i]["foto_barang"];
                                     final bController = TextEditingController(
                                       text: data[i]["B"].toString(),
                                     );
@@ -342,7 +421,8 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
                                                   controller: namabarang,
                                                   decoration:
                                                       const InputDecoration(
-                                                        labelText: "Nama Barang",
+                                                        labelText:
+                                                            "Nama Barang",
                                                         border:
                                                             OutlineInputBorder(),
                                                       ),
@@ -351,13 +431,12 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
                                                 TextField(
                                                   controller:
                                                       tanggalbarangdatang,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        labelText:
-                                                            "Tanggal Barang Datang",
-                                                        border:
-                                                            OutlineInputBorder(),
-                                                      ),
+                                                  decoration: const InputDecoration(
+                                                    labelText:
+                                                        "Tanggal Barang Datang",
+                                                    border:
+                                                        OutlineInputBorder(),
+                                                  ),
                                                 ),
                                                 const SizedBox(height: 12),
                                                 TextField(
@@ -383,20 +462,11 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
                                                 ),
                                                 const SizedBox(height: 12),
                                                 TextField(
-                                                  controller: spesifikasi, 
+                                                  controller: spesifikasi,
                                                   decoration:
                                                       const InputDecoration(
-                                                        labelText: "Spesifikasi",
-                                                        border:
-                                                            OutlineInputBorder(),
-                                                      ),
-                                                ),
-                                                const SizedBox(height: 12),
-                                                TextField(
-                                                  controller: kategori,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        labelText: "Kategori",
+                                                        labelText:
+                                                            "Spesifikasi",
                                                         border:
                                                             OutlineInputBorder(),
                                                       ),
@@ -452,8 +522,7 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
                                                     await _editDataAtkController
                                                         .editAtk(
                                                           id: id,
-                                                          noBMN:
-                                                              noBMN.text,
+                                                          noBMN: noBMN.text,
                                                           namabarang:
                                                               namabarang.text,
                                                           tanggalbarangdatang:
@@ -465,10 +534,7 @@ class _TabelStockAtkState extends State<TabelStockAtk> {
                                                               spesifikasi.text,
                                                           namaruangan:
                                                               namaruangan.text,
-                                                          kategori:
-                                                              kategori.text,
-                                                          fotoatkBaru:
-                                                              selectedFotoAtk,
+
                                                           b: bController.text,
                                                           rr: rrController.text,
                                                           rb: rbController.text,

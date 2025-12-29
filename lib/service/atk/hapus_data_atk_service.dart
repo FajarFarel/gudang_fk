@@ -52,28 +52,21 @@ class EditAtkService {
     required String satuan,
     required String spesifikasi,
     required String namaruangan,
-    required String kategori,
-    File? fotoatkBaru, // opsional
   }) async {
     final url = Uri.parse("${Config.baseUrl}/api/edit_atk/$id");
     final request = http.MultipartRequest("PUT", url);
 
-    request.fields["no_BMN"] = noBMN;
+    request.fields["no_bmn"] = noBMN;
     request.fields["nama_barang"] = namabarang;
-    request.fields["tanggal_barang_datang"] = tanggalbarangdatang;
+    if (tanggalbarangdatang.isNotEmpty &&
+        tanggalbarangdatang.toLowerCase() != "null") {
+      request.fields["tanggal_barang_datang"] = tanggalbarangdatang;
+    }
     request.fields["jumlah"] = jumlah;
     request.fields["satuan"] = satuan;
     request.fields["spesifikasi"] = spesifikasi;
     request.fields["nama_ruangan"] = namaruangan;
-    request.fields["kategori"] = kategori;
     // Jika ada foto baru, tambahkan ke request
-    if (fotoatkBaru != null) {
-      final multipartFile = await http.MultipartFile.fromPath(
-        "foto_atk",
-        fotoatkBaru.path,
-      );
-      request.files.add(multipartFile);
-    }
     request.fields["B"] = b;
     request.fields["RR"] = rr;
     request.fields["RB"] = rb;

@@ -1135,28 +1135,44 @@ def cari_atk_berdasarkan_nobmn():
 
 @api_bp.route('/isitabelatk', methods=['GET'])
 def get_atk_by_kategori():
+    from datetime import datetime
+    import locale
+
     conn = get_db_connection()
     if conn is None:
-        return jsonify({"error": "Database con  nection failed"}), 500
+        return jsonify({"error": "Database connection failed"}), 500
 
     try:
-        # Atur locale Indonesia
-        try:
-            locale.setlocale(locale.LC_TIME, 'id_ID.UTF-8')
-        except:
-            locale.setlocale(locale.LC_TIME, 'id_ID')
-
         cursor = conn.cursor(pymysql.cursors.DictCursor)
 
         kategori = request.args.get("kategori")
-
         if not kategori:
             return jsonify({"error": "Parameter 'kategori' wajib diisi"}), 400
 
+        # ===========================
+        #  ESCAPE % → %%  (IMPORTANT)
+        # ===========================
         cursor.execute("""
             SELECT 
-                id, no_bmn, tanggal_barang_datang, spesifikasi,
-                nama_barang, jumlah, satuan, B, RR, RB, no_barcode, foto_barang, kategori
+                id,
+                no_bmn,
+
+                -- format untuk EDIT FORM
+                DATE_FORMAT(tanggal_barang_datang, '%%Y-%%m-%%d')
+                    AS tanggal_barang_datang_iso,
+
+                -- format untuk TAMPILAN LIST
+                DATE_FORMAT(tanggal_barang_datang, '%%W, %%d %%M %%Y')
+                    AS tanggal_barang_datang,
+
+                spesifikasi,
+                nama_barang,
+                jumlah,
+                satuan,
+                B, RR, RB,
+                no_barcode,
+                foto_barang,
+                kategori
             FROM barang_masuk
             WHERE kategori = %s
             ORDER BY id ASC
@@ -1164,28 +1180,38 @@ def get_atk_by_kategori():
 
         rows = cursor.fetchall()
 
-        # Return list kosong biar Flutter ga error
         if not rows:
             return jsonify([]), 200
 
-        for row in rows:
-            tgl = row.get("tanggal_barang_datang")
-            if isinstance(tgl, (datetime, str)):
-                if isinstance(tgl, str):
-                    try:
-                        tgl = datetime.fromisoformat(tgl)
-                    except:
-                        pass
-                row["tanggal_barang_datang"] = tgl.strftime("%A, %d %B %Y")
+        # ===========================
+        #   Locale Indonesia (fallback safe)
+        # ===========================
+        try:
+            locale.setlocale(locale.LC_TIME, 'id_ID.UTF-8')
+        except:
+            try:
+                locale.setlocale(locale.LC_TIME, 'id_ID')
+            except:
+                pass
 
-            foto_filename = row.get("foto_barang")
-            if foto_filename:
-                row["foto_barang"] = f"{Base_URL}/uploads/atk/{foto_filename}"
+        for row in rows:
+
+            # pastikan label tanggal Indonesia valid
+            try:
+                d = datetime.strptime(row["tanggal_barang_datang_iso"], "%Y-%m-%d")
+                row["tanggal_barang_datang"] = d.strftime("%A, %d %B %Y")
+            except:
+                pass
+
+            # Build full image URL
+            foto = row.get("foto_barang")
+            if foto:
+                row["foto_barang"] = f"{Base_URL}/uploads/atk/{foto}"
 
         return jsonify(rows), 200
 
     except Exception as e:
-        print("❌ ERROR:", e)
+        print("❌ ERROR /isitabelatk:", e)
         return jsonify({"error": str(e)}), 500
 
     finally:
@@ -1194,17 +1220,23 @@ def get_atk_by_kategori():
 
 @api_bp.route('/edit_atk/<int:id>', methods=['GET', 'PUT'])
 def edit_data_atk(id):
+    from datetime import datetime
+
     conn = get_db_connection()
     if conn is None:
         return jsonify({"error": "Database connection failed"}), 500
 
     try:
-        with conn.cursor(pymysql.cursors.DictCursor) as cursor:
 
-            if request.method == 'GET':
-                # Ambil data existing untuk prefill
+        # ======================
+        # GET (prefill)
+        # ======================
+        if request.method == 'GET':
+            with conn.cursor(pymysql.cursors.DictCursor) as cursor:
                 cursor.execute("""
-                    SELECT B, RR, RB
+                    SELECT 
+                        B, RR, RB, no_bmn, tanggal_barang_datang,
+                        spesifikasi, nama_barang, jumlah, satuan
                     FROM barang_masuk
                     WHERE id = %s AND kategori = 'atk'
                 """, (id,))
@@ -1215,26 +1247,81 @@ def edit_data_atk(id):
 
                 return jsonify(result), 200
 
-            # ======================
-            # Method PUT (UPDATE)
-            # ======================
-            data = request.form
-            B = data.get("B")
-            RR = data.get("RR")
-            RB = data.get("RB")
+        # ======================
+        # PUT (UPDATE)
+        # ======================
+        data = request.form
 
+        B   = data.get("B")
+        RR  = data.get("RR")
+        RB  = data.get("RB")
+        no_bmn = data.get("no_bmn")
+        spesifikasi = data.get("spesifikasi")
+        nama_barang = data.get("nama_barang")
+        jumlah = data.get("jumlah")
+        satuan = data.get("satuan")
+
+        raw_date = data.get("tanggal_barang_datang")
+        tanggal_barang_datang = None
+
+        # ---- Handle berbagai format tanggal aman ----
+        if raw_date:
+
+            # Format dari sample kamu:
+            # "Fri, 12 Dec 2025 00:00:00 GMT"
+            try:
+                tanggal_barang_datang = datetime.strptime(
+                    raw_date,
+                    "%a, %d %b %Y %H:%M:%S %Z"
+                ).strftime("%Y-%m-%d")
+
+            # Kalau ternyata frontend kirim "2025-12-12"
+            except ValueError:
+                try:
+                    tanggal_barang_datang = datetime.strptime(
+                        raw_date,
+                        "%Y-%m-%d"
+                    ).strftime("%Y-%m-%d")
+                except ValueError:
+                    return jsonify({
+                        "error": "Format tanggal tidak valid",
+                        "value": raw_date
+                    }), 400
+
+        # ======================
+        # Execute UPDATE
+        # ======================
+        with conn.cursor() as cursor:
             cursor.execute("""
                 UPDATE barang_masuk
-                SET B = %s, RR = %s, RB = %s
+                SET 
+                    B = %s,
+                    RR = %s,
+                    RB = %s,
+                    no_bmn = %s,
+                    tanggal_barang_datang = %s,
+                    spesifikasi = %s,
+                    nama_barang = %s,
+                    jumlah = %s,
+                    satuan = %s
                 WHERE id = %s AND kategori = 'atk'
-            """, (B, RR, RB, id))
+            """, (
+                B, RR, RB,
+                no_bmn,
+                tanggal_barang_datang,
+                spesifikasi,
+                nama_barang,
+                jumlah,
+                satuan,
+                id
+            ))
 
             conn.commit()
 
-            return jsonify({"message": "Data berhasil diupdate"}), 200
+        return jsonify({"message": "Data berhasil diupdate"}), 200
 
     except Exception as e:
-        print("Error:", e)
+        print("ERROR EDIT ATK:", e)
         return jsonify({"error": str(e)}), 500
 
     finally:
