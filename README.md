@@ -52,3 +52,77 @@ cd gudang-fk
 
 ---
 
+Install dependencies:
+
+```bash
+flutter pub get
+flutter run
+```
+
+---
+
+Build application:
+
+```bash
+flutter build apk --release
+```
+```bash
+flutter build windows
+```
+
+---
+
+## ⚙️ Konfigurasi API
+
+Ubah base URL pada service sesuai environment server:
+
+```dart
+const String baseUrl = "https://your-backend-domain.com/api";
+```
+Contoh environment:
+  - Development → localhost / ngrok
+  - Staging → private server
+  - Production → domain utama
+Pastikan endpoint konsisten dengan backend.
+
+---
+
+## 📁 Struktur Proyek (Ringkasan)
+
+```text
+lib/
+ ├─ controller/
+ ├─ service/
+ ├─ pages/
+ ├─ widgets/
+ ├─ models/
+ └─ utils/
+```
+Struktur modular untuk memudahkan maintenance & pengembangan fitur.
+
+---
+
+## 🔒 Validasi & Error Handling
+
+Beberapa skenario yang telah ditangani:
+  - Data tidak valid / field kosong
+  - Gagal update data (HTTP 400)
+  - Gagal upload foto
+  - Koneksi API gagal / timeout
+  - Fallback parsing nilai stok
+Pesan error dirancang informatif agar mempermudah troubleshooting.
+
+---
+
+## 📝 Lisensi
+
+Proyek ini digunakan untuk kebutuhan internal.
+Penggunaan di luar lingkungan terkait dapat dikonsultasikan dengan pemilik repository.
+
+---
+
+## 👤 Pengembang
+
+Gudang FK dikembangkan oleh:
+  - Fajar (developer)
+  - Leo (AI)
