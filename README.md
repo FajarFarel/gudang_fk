@@ -47,10 +47,8 @@ Clone repository:
 
 ```bash
 git clone https://github.com/username/gudang-fk.git
-cd gudang-fk 
+cd gudang-fk
+```
 
-
-
-
-
+---
 
