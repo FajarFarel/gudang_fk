@@ -116,8 +116,8 @@ Pesan error dirancang informatif agar mempermudah troubleshooting.
 
 ## 📝 Lisensi
 
-Proyek ini digunakan untuk kebutuhan internal.
-Penggunaan di luar lingkungan terkait dapat dikonsultasikan dengan pemilik repository.
+Project ini dirilis menggunakan MIT License.  
+Lihat detail lisensi di sini 👉 [LICENSE](LICENSE)
 
 ---
 
