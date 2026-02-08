@@ -46,7 +46,7 @@ Aplikasi ini dikembangkan untuk kebutuhan operasional gudang agar proses adminis
 Clone repository:
 
 ```bash
-git clone https://github.com/username/gudang-fk.git
+git clone https://github.com/username/gudang_fk.git
 cd gudang-fk
 ```
 
